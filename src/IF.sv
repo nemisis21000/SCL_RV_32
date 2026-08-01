@@ -1,0 +1,136 @@
+`timescale 1ns / 1ps
+
+module IF(
+
+input logic clk,
+input logic rst,
+
+// Branch/Jump control
+input logic PcSrcE,
+input logic StallF,
+input logic [31:0] PcTargetE,
+
+
+// Outputs to Decode stage
+output logic [31:0] InstrD,
+output logic [31:0] PcD,
+output logic [31:0] PcPlus4D
+
+);
+
+//////////////////////////////////////////////////////
+// Internal Signals
+//////////////////////////////////////////////////////
+
+logic [31:0] PCF;
+
+
+logic [31:0] InstrF;
+logic [31:0] PcPlus4F;
+
+// New signal
+logic [31:0] PC_BranchNext;
+
+//////////////////////////////////////////////////////
+// Branch/Jump MUX
+//////////////////////////////////////////////////////
+
+MUX_2_1 branch_mux(
+
+    .a(PcPlus4F),
+    .b(PcTargetE),
+    .sel(PcSrcE),
+
+    .c(PC_BranchNext)
+
+);
+
+//////////////////////////////////////////////////////
+// Program Counter
+//////////////////////////////////////////////////////
+
+Pc_Module Pc(
+
+    .clk(clk),
+    .rst(rst),
+
+    .Pc_next(PC_BranchNext),
+    .Pc(PCF),
+
+    .StallF(StallF)
+
+);
+
+//////////////////////////////////////////////////////
+// Instruction Memory
+//////////////////////////////////////////////////////
+
+inst_memory inst_mem(
+
+    .A(PCF),
+    .RD(InstrF)
+
+);
+
+//////////////////////////////////////////////////////
+// PC + 4
+//////////////////////////////////////////////////////
+
+Pc_adder pc_adder(
+
+    .PcF(PCF),
+    .PcF_4(PcPlus4F)
+
+);
+
+//////////////////////////////////////////////////////
+// IF/ID Pipeline Register
+//////////////////////////////////////////////////////
+
+always_ff @(posedge clk or negedge rst)
+begin
+
+    if(!rst)
+    begin
+
+        InstrD   <= 32'h00000013; // NOP
+        PcD      <= 32'd0;
+        PcPlus4D <= 32'd0;
+
+    end
+
+    //////////////////////////////////////////////////
+    // Flush on branch/jump OR interrupt
+    //////////////////////////////////////////////////
+
+else if(PcSrcE)
+
+    begin
+
+        InstrD   <= 32'h00000013; // bubble
+        PcD      <= 32'd0;
+        PcPlus4D <= 32'd0;
+//         PcD <= PcD;
+//        PcPlus4D <= PcPlus4D;
+    end
+
+    //////////////////////////////////////////////////
+    // Normal update
+    //////////////////////////////////////////////////
+
+    else if(!StallF)
+    begin
+
+        InstrD   <= InstrF;
+        PcD      <= PCF;
+        PcPlus4D <= PcPlus4F;
+
+    end
+
+    //////////////////////////////////////////////////
+    // Stall -> hold current values
+    //////////////////////////////////////////////////
+
+end
+
+endmodule
