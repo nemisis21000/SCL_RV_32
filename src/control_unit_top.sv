@@ -3,7 +3,7 @@
 module control_unit_top(
 input logic [6:0]op,
 input logic [2:0]funct3,
-input logic [6:0]funct7,
+input logic funct7,
 output logic RegWriteD,
 output logic [1:0] ResultSrcD,
 output logic MemWriteD,
@@ -18,7 +18,7 @@ output logic ALUSrcBD
 logic [1:0]ALUOp;
 
 ALU_Decoder alu (
-             .op(op),
+             .op(op[5]),
              .funct3(funct3),
              .funct7(funct7),
              .ALUOp(ALUOp),
@@ -35,7 +35,6 @@ main_decoder decoder (
             .jump(jumpD),
             .Branch(BranchD),
             .ALUOp(ALUOp),
-            .MemRead(MemReadD),
-            .funct3(funct3)
+            .MemRead(MemReadD)
             );
 endmodule

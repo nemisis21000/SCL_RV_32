@@ -2,15 +2,11 @@
 
 module write_back_stage(
 
-input logic RegWriteW,
 input logic [1:0] ResultSrcW,
 
 input logic [31:0] ALUResultW,
 input logic [31:0] ReadDataW,
 input logic [31:0] PcPlus4W,
-
-
-input logic [4:0] RdW,
 
 output logic [31:0] ResultW
 

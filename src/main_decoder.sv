@@ -10,14 +10,11 @@ output logic RegWrite,
 output logic jump,
 output logic Branch,
 output logic [1:0]ALUOp,
-output logic MemRead,
-input logic [2:0] funct3
-
+output logic MemRead
 );
 
 always_comb begin
 
-// defaults (VERY IMPORTANT)
     RegWrite = 0;
     MemWrite = 0;
     ALUSrcA = 2'b00;
@@ -27,7 +24,6 @@ always_comb begin
     jump     = 0;
     ALUOp    = 2'b00;
     MemRead   = 1'b0; 
-
     case(op)
 
 // R-type
@@ -103,7 +99,17 @@ always_comb begin
         ALUSrcB    = 1;         //SrcB is imm
         ResultSrc = 2'b00;      // write the alu result in register
     end
-    
+    default: begin
+        RegWrite = 0;
+        MemWrite = 0;
+        ALUSrcA = 2'b00;
+        ALUSrcB   = 0;
+        ResultSrc= 2'b00;
+        Branch   = 0;
+        jump     = 0;
+        ALUOp    = 2'b00;
+        MemRead   = 1'b0; 
+    end
     endcase
 
 end

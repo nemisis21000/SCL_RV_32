@@ -229,11 +229,9 @@ data_mem_stage memory_stage(
 ////////////////////////////////////////////////////////////
 
 write_back_stage wb(
-    .RegWriteW(RegWriteW),
     .ResultSrcW(ResultSrcW),
     .ALUResultW(ALUResultW),
     .ReadDataW(ReadDataW),
-    .RdW(RdW),
     .PcPlus4W(PcPlus4W),
     .ResultW(ResultW)
 );
@@ -263,8 +261,7 @@ hazard_unit ha(
     .StallD(StallD_hz),      // raw output - no expression
     .FlushD(FlushD_hz),      // raw output - no expression
     .FlushE(FlushE_hz),      // raw output - no expression
-    .lw_stall(lw_stall),
-    .MemReadM(MemReadM)
+    .lw_stall(lw_stall)
 );
 
 ////////////////////////////////////////////////////////////

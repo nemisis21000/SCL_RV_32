@@ -19,8 +19,6 @@ input logic [4:0] RdE,
 input logic [1:0] ResultSrcE,
 
 input logic PcSrcE,
-///////////////////
-input logic MemReadM,
 
 ////////////////////
 output logic StallF,

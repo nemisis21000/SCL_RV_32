@@ -83,7 +83,7 @@ control_unit_top control (
 
     .op(InstrD[6:0]),
     .funct3(InstrD[14:12]),
-    .funct7(InstrD[31:25]),
+    .funct7(InstrD[30]),
 
     .RegWriteD(RegWriteD),
     .ResultSrcD(ResultSrcD),

@@ -1,0 +1,110 @@
+00a00093	//addi x1,x0,10
+01400113	//addi x2,x0,20
+01e00193	//addi x3,x0,30
+02800213	//addi x4,x0,40	
+
+002082b3	//add x5,x1,x2 ; x5 = 30
+00117333	//and x6,x2,x1 ; x6 = 0
+001193b3	//sll x7,x3,x1 ; x7 = 30720
+
+fff00513	//addi x10,x0,-1
+00100593	//addi x11,x0,1
+00b52633	//slt x12,x10,x11 ; x12 = 1
+00b536b3	//sltu x13,x10,x11; x13 = 0
+
+40120733	//sub x14,x4,x1; x14 = 30
+404087b3	//sub x15,x1,x4; x15 = -30
+
+80100813	//addi x16,x0, -2047
+401858b3	//sra x17, x16,x1;x17 = -1
+00185933	//srl x18, x16, x1;x18 = 
+
+00000093	//addi x1,x0,0, x1 = 00000000
+0000a103	//lw x2, 0(x1), x2 = 11111111
+00009183	//lh x3, 0(x1), x3 = 00001111
+00209203	//lh x4, 2(x1), x4 = 00001111
+00008283	//lb x5, 0(x1), x5 = 00000011
+00108303	//lb x6, 1(x1), x6 = 00000011
+00208383	//lb x7, 2(x1), x7 = 00000011
+00308403	//lb x8, 3(x1), x8 = 00000011  (x2 has 11111111)
+
+00002023	//sw x0, 0(x0)
+00002223	//sw x0, 4(x0)  To clear out the first three registers of the data_mem
+00002423	//sw x0, 8(x0)
+
+00202023	//sw x2, 0(x0), data_mem[0]  = 11111111
+00201223	//sh x2, 4(x0), data_mem[1]  = 00001111
+00201323	//sh x2, 6(x0), data_mem[1]  = 11111111
+00200423	//sb x2, 8(x0), data_mem[2]  = 00000011
+002004a3	//sb x2, 9(x0), data_mem[2]  = 00001111
+00200523	//sb x2, 10(x0), data_mem[2] = 00111111
+002005a3	//sb x2, 11(x0), data_mem[2] = 11111111
+
+00008463	//beq x1,x0,8 ; because x1 and x0 are 0 branch will be taken
+00000113	//addi x2,x0,0  ; this shouldn't be executed
+06300113	//addi x2,x0,99 ; this should be executed
+00010463	//beq x2,x0,8   ; because x0 and x2(99) are not equal branch will not be taken
+00000013	//nop		; this should be executed
+
+00011463	//bne x2,x0,8	; because x0 and x2(99) are not equal branch will be taken 
+00000013	//nop		; this shouldn't be executed
+06300113	//addi x2,x0,99 ; this should be executed
+00001463	//bne x0,x0,8	; because x0 and x0 are equal branch will not be taken
+00000013	//nop		; this shouldn't be executed
+
+0fc02f83	//lw x31, 252(x0); loading 80000001 (signed = -2^31+1)/(unsigned = 2^31+1) from data_mem[63] into x31
+
+000fc463	//blt x31,x0,8	; because x31(-2^31+1) is less than x0 branch will be taken
+00000013	//nop		; this shouldn't be executed
+06300113	//addi x2,x0,99 ; this should be executed
+01f04463	//blt x0,x31,8	; because x0 is not less than x31(-2^31+1) branch will not be taken
+00000013	//nop		; this should be executed	
+
+01f06463	//bltu x0,x31,8 ; because x0 is less than x31(2^31+1) branch will be taken
+00000013	//nop		; this shouldn't be executed
+06300113	//addi x2,x0,99 ; this should be executed
+000fe463	//bltu x31,x0,8 ; because x31(2^31+1) is not less than x0 branch will not be taken
+00000013	//nop		; this should be executed
+
+
+
+01f05463	//bge x0,x31,8	; because x0 is greater than x31(-2^31+1) branch will be taken
+00000013	//nop		; this shouldn't be executed
+06300113	//addi x2,x0,99 ; this should be executed
+000fd463	//bge x31,x0, 8 ; because x31(-2^31+1) is not greater than x0 branch will not be taken
+00000013	//nop		; this should be executed
+
+000ff463	//bgeu x31,x0,8	; because x31(2^31+1) is greater than x0 branch will be taken
+00000013	//nop		; this shouldn't be executed
+06300113	//addi x2,x0,99 ; this should be executed
+01f07463	//bgeu x0,x31,8	; because x0 is not greater than x31(2^31+1) branch will not be taken
+00000013	//nop		; this should be executed
+
+008000ef	//jal x1,8	; an unconditional jump to the 
+00000013	//nop		; shouldn't be executed
+06300113	//addi x2,x0,99 ; this should be executed
+
+
+00c00393	//addi x7,x0,12 ; right now PC = 272
+120380e7	//jalr x1,288(x7) ; the pc should go to PC = 288+12 = 300
+00000013	//nop		; shouldn't be executed
+00000013	//nop		; shouldn't be executed
+06300113	//addi x2,x0,99 ; this should be executed
+
+0000c537	//lui x10, 12
+
+0000c517	//auipc x10,12
+
+
+
+
+
+
+
+
+
+
+
+
+
+
