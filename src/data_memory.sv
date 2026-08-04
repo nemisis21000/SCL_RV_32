@@ -26,18 +26,32 @@ module jtsc_dmem(
 
 logic [31:0] load_byte;
 logic [31:0] load_half;
-logic [31:0] rdata_raw;
-
 logic [3:0] wstrb_reg;
+logic req_pending;
 
 //assign MEM_VALID = MemRead || MemWrite;
-assign MEM_WRITE = MemWrite;
-assign MEM_READ = MemRead;
+assign MEM_WRITE = MemWrite && !req_pending;
+assign MEM_READ = MemRead && !req_pending;
 assign MEM_ADDR = A;
 assign MEM_WDATA = WD;
 assign MEM_WSTRB = (MemWrite)? wstrb_reg : 4'b0000;
-assign StallMem = (MEM_WRITE || MEM_READ) && !MEM_READY;
+assign StallMem = (MemRead || MemWrite) && !((MEM_WRITE || MEM_READ || req_pending) && MEM_READY);
 
+////////////////////////////////////////////////////
+// SINGLE-CYCLE PULSE GENERATION FOR MEM_WRITE / MEM_READ
+///////////////////////////////////////////////////
+
+always_ff @(posedge clk or negedge rst)
+begin
+    if(!rst)
+        req_pending <= 1'b0;
+    else begin
+        if((MemRead||MemWrite) && !req_pending && !MEM_READY)
+            req_pending <= 1'b1;
+        else if(req_pending && MEM_READY)
+            req_pending <= 1'b0;
+    end
+end
 ////////////////////////////////////////////////////
 //BYTE ENABLE
 ///////////////////////////////////////////////////
@@ -54,19 +68,10 @@ begin
     else wstrb_reg = 4'b0000;
 end   
 
-always_ff@(posedge clk or negedge rst)
-begin
-    if(!rst)
-        rdata_raw <= 32'b0;
-        
-    else if (MemRead && MEM_READY)
-        rdata_raw <= MEM_RDATA;
-end
-
 always_comb begin
 
-    load_byte = rdata_raw >> (8*A[1:0]);
-    load_half = rdata_raw >> (8*A[  0]);
+    load_byte = MEM_RDATA >> (8*A[1:0]);
+    load_half = MEM_RDATA >> (8*A[  0]);
 
     case(funct3M)
 
@@ -78,7 +83,7 @@ always_comb begin
 
         3'b101: RD = {16'b0, load_half[15:0]};               // LHU
 
-        3'b010: RD = rdata_raw;                        // LW
+        3'b010: RD = MEM_RDATA;                        // LW
 
         default: RD = 32'b0;
     endcase

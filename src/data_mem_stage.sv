@@ -72,8 +72,7 @@ begin
 
     else if (data_bus_stall)
     begin
-        // HOLD - APB transaction in progress
-        // do NOT latch - implicit hold in always_ff
+        
     end
 
     else
@@ -81,7 +80,7 @@ begin
         RegWriteW  <= RegWriteM;
         ResultSrcW <= ResultSrcM;
         ALUResultW <= ALUResultM;
-        ReadDataW  <= ReadDataM;   // only latch when APB done
+        ReadDataW  <= ReadDataM;
         RdW        <= RdM;
         PcPlus4W   <= PcPlus4M;
     end

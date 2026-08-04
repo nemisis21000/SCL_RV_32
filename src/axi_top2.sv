@@ -159,64 +159,64 @@ module AXI_TOP #(
         .axi_rready         (m_axi_rready)
     );
 
-    // =========================================================================
-    // AXI INTERCONNECT
-    // + s0 = RAM
-    // =========================================================================
-    AXI_Interconnect u_interconnect (
-        .clk                (clk),
-        .reset              (reset),
+//    // =========================================================================
+//    // AXI INTERCONNECT
+//    // + s0 = RAM
+//    // =========================================================================
+//    AXI_Interconnect u_interconnect (
+//        .clk                (clk),
+//        .reset              (reset),
 
-        // ===============================
-        // AXI MASTER SIDE
-        // ===============================
-        .m_axi_awaddr       (m_axi_awaddr),
-        .m_axi_awvalid      (m_axi_awvalid),
-        .m_axi_awready      (m_axi_awready),
+//        // ===============================
+//        // AXI MASTER SIDE
+//        // ===============================
+//        .m_axi_awaddr       (m_axi_awaddr),
+//        .m_axi_awvalid      (m_axi_awvalid),
+//        .m_axi_awready      (m_axi_awready),
 
-        .m_axi_wdata        (m_axi_wdata),
-        .m_axi_wstrb        (m_axi_wstrb),
-        .m_axi_wvalid       (m_axi_wvalid),
-        .m_axi_wready       (m_axi_wready),
+//        .m_axi_wdata        (m_axi_wdata),
+//        .m_axi_wstrb        (m_axi_wstrb),
+//        .m_axi_wvalid       (m_axi_wvalid),
+//        .m_axi_wready       (m_axi_wready),
 
-        .m_axi_bresp        (m_axi_bresp),
-        .m_axi_bvalid       (m_axi_bvalid),
-        .m_axi_bready       (m_axi_bready),
+//        .m_axi_bresp        (m_axi_bresp),
+//        .m_axi_bvalid       (m_axi_bvalid),
+//        .m_axi_bready       (m_axi_bready),
 
-        .m_axi_araddr       (m_axi_araddr),
-        .m_axi_arvalid      (m_axi_arvalid),
-        .m_axi_arready      (m_axi_arready),
+//        .m_axi_araddr       (m_axi_araddr),
+//        .m_axi_arvalid      (m_axi_arvalid),
+//        .m_axi_arready      (m_axi_arready),
 
-        .m_axi_rdata        (m_axi_rdata),
-        .m_axi_rresp        (m_axi_rresp),
-        .m_axi_rvalid       (m_axi_rvalid),
-        .m_axi_rready       (m_axi_rready),
+//        .m_axi_rdata        (m_axi_rdata),
+//        .m_axi_rresp        (m_axi_rresp),
+//        .m_axi_rvalid       (m_axi_rvalid),
+//        .m_axi_rready       (m_axi_rready),
 
-        // ===============================
-        // RAM SLAVE
-        // ===============================
-        .s0_axi_awaddr       (ram_axi_awaddr),
-        .s0_axi_awvalid      (ram_axi_awvalid),
-        .s0_axi_awready      (ram_axi_awready),
+//        // ===============================
+//        // RAM SLAVE
+//        // ===============================
+//        .s0_axi_awaddr       (ram_axi_awaddr),
+//        .s0_axi_awvalid      (ram_axi_awvalid),
+//        .s0_axi_awready      (ram_axi_awready),
 
-        .s0_axi_wdata        (ram_axi_wdata),
-        .s0_axi_wstrb        (ram_axi_wstrb),
-        .s0_axi_wvalid       (ram_axi_wvalid),
-        .s0_axi_wready       (ram_axi_wready),
+//        .s0_axi_wdata        (ram_axi_wdata),
+//        .s0_axi_wstrb        (ram_axi_wstrb),
+//        .s0_axi_wvalid       (ram_axi_wvalid),
+//        .s0_axi_wready       (ram_axi_wready),
 
-        .s0_axi_bresp        (ram_axi_bresp),
-        .s0_axi_bvalid       (ram_axi_bvalid),
-        .s0_axi_bready       (ram_axi_bready),
+//        .s0_axi_bresp        (ram_axi_bresp),
+//        .s0_axi_bvalid       (ram_axi_bvalid),
+//        .s0_axi_bready       (ram_axi_bready),
 
-        .s0_axi_araddr       (ram_axi_araddr),
-        .s0_axi_arvalid      (ram_axi_arvalid),
-        .s0_axi_arready      (ram_axi_arready),
+//        .s0_axi_araddr       (ram_axi_araddr),
+//        .s0_axi_arvalid      (ram_axi_arvalid),
+//        .s0_axi_arready      (ram_axi_arready),
 
-        .s0_axi_rdata        (ram_axi_rdata),
-        .s0_axi_rresp        (ram_axi_rresp),
-        .s0_axi_rvalid       (ram_axi_rvalid),
-        .s0_axi_rready       (ram_axi_rready)
-    );
+//        .s0_axi_rdata        (ram_axi_rdata),
+//        .s0_axi_rresp        (ram_axi_rresp),
+//        .s0_axi_rvalid       (ram_axi_rvalid),
+//        .s0_axi_rready       (ram_axi_rready)
+//    );
 
     // =========================================================================
     // AXI RAM SLAVE
@@ -226,28 +226,28 @@ module AXI_TOP #(
         .clk                 (clk),
         .reset                (reset),
 
-        .s_axi_awaddr       (ram_axi_awaddr),
+        .s_axi_awaddr       (m_axi_awaddr),
 //        .s_axil_awprot       (3'b000),
-        .s_axi_awvalid      (ram_axi_awvalid),
-        .s_axi_awready      (ram_axi_awready),
+        .s_axi_awvalid      (m_axi_awvalid),
+        .s_axi_awready      (m_axi_awready),
 
-        .s_axi_wdata        (ram_axi_wdata),
-        .s_axi_wstrb        (ram_axi_wstrb),
-        .s_axi_wvalid       (ram_axi_wvalid),
-        .s_axi_wready       (ram_axi_wready),
+        .s_axi_wdata        (m_axi_wdata),
+        .s_axi_wstrb        (m_axi_wstrb),
+        .s_axi_wvalid       (m_axi_wvalid),
+        .s_axi_wready       (m_axi_wready),
 
-        .s_axi_bresp        (ram_axi_bresp),
-        .s_axi_bvalid       (ram_axi_bvalid),
-        .s_axi_bready       (ram_axi_bready),
+        .s_axi_bresp        (m_axi_bresp),
+        .s_axi_bvalid       (m_axi_bvalid),
+        .s_axi_bready       (m_axi_bready),
 
-        .s_axi_araddr       (ram_axi_araddr),
+        .s_axi_araddr       (m_axi_araddr),
 //        .s_axil_arprot       (3'b000),
-        .s_axi_arvalid      (ram_axi_arvalid),
-        .s_axi_arready      (ram_axi_arready),
+        .s_axi_arvalid      (m_axi_arvalid),
+        .s_axi_arready      (m_axi_arready),
 
-        .s_axi_rdata        (ram_axi_rdata),
-        .s_axi_rresp        (ram_axi_rresp),
-        .s_axi_rvalid       (ram_axi_rvalid),
-        .s_axi_rready       (ram_axi_rready)
+        .s_axi_rdata        (m_axi_rdata),
+        .s_axi_rresp        (m_axi_rresp),
+        .s_axi_rvalid       (m_axi_rvalid),
+        .s_axi_rready       (m_axi_rready)
     );
 endmodule
