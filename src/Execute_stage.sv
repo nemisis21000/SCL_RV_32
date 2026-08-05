@@ -2,8 +2,8 @@
 
 module Execute_stage(
 
-input logic clk,
-input logic rst,
+    input logic clk,
+    input logic rst,
 
 //////////////////////////////////////////////////////
 // Control Signals from Decode Stage
@@ -17,6 +17,7 @@ input logic BranchE,
 input logic [3:0] ALUControlE,
 input logic [1:0] ALUSrcAE,
 input logic ALUSrcBE,
+
 //////////////////////////////////////////////////////
 // Data Signals from Decode Stage
 //////////////////////////////////////////////////////
@@ -46,12 +47,8 @@ input logic [31:0] ALUResultM_forward,
 
 input logic FlushE,
 
-//////////////////////////////////////////////////////
-// APB Bus Stall - freezes EX/MEM register
-// until APB transaction completes (pready=1)
-//////////////////////////////////////////////////////
 
-input logic StallM,           // NEW: driven by bus_stall in pipeline_top
+input logic StallE,
 
 //////////////////////////////////////////////////////
 // Branch Function
@@ -277,9 +274,9 @@ begin
     end
     
     
-    else if(StallM)
+    else if(StallE)
     begin
-        // --- 2. APB bus stall: freeze EX/MEM register ---
+        // bus stall: freeze EX/MEM register ---
         // All outputs hold their current values.
         // Do NOT write anything - implicit in always_ff.
         RegWriteM   <= RegWriteM;

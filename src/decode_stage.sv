@@ -2,48 +2,46 @@
 
 module decode_stage(
 
-input logic clk,
-input logic rst,
+    input logic clk,
+    input logic rst,
 
-input logic RegWriteW,
+    input logic RegWriteW,
+    input logic [31:0] ResultW,
+    input logic [4:0] RdW,
+    
+    input logic [31:0] InstrD,
+    input logic [31:0] PCD,
+    input logic [31:0] PcPlus4D,
 
-input logic [31:0] InstrD,
-input logic [31:0] PCD,
-input logic [31:0] PcPlus4D,
+    input logic StallD,
+    input logic FlushD,
 
-input logic [31:0] ResultW,
-input logic [4:0] RdW,
+    output logic RegWriteE,
+    output logic [1:0] ResultSrcE,
+    output logic MemWriteE,
+    output logic MemReadE,
+    output logic jumpE,
+    output logic BranchE,
+    output logic [3:0] ALUControlE,
+    output logic [1:0] ALUSrcAE,
+    output logic ALUSrcBE,
 
-input logic StallD,
-input logic FlushD,
+    output logic [31:0] RD1E,
+    output logic [31:0] RD2E,
+    
+    output logic [31:0] PCE,
+    output logic [31:0] PcPlus4E,
 
-output logic RegWriteE,
-output logic [1:0] ResultSrcE,
-output logic MemWriteE,
-output logic jumpE,
-output logic BranchE,
-output logic [3:0] ALUControlE,
-output logic [1:0] ALUSrcAE,
-output logic ALUSrcBE,
+    output logic [4:0] RdE,
+    output logic [4:0] RS1E,
+    output logic [4:0] RS2E,
 
-output logic [31:0] RD1E,
-output logic [31:0] RD2E,
-output logic [31:0] PCE,
+    output logic [31:0] ImmExtendE,
 
-output logic [4:0] RdE,
-output logic [4:0] RS1E,
-output logic [4:0] RS2E,
+    output logic [4:0] RS1D,
+    output logic [4:0] RS2D,
 
-output logic [31:0] ImmExtendE,
-output logic [31:0] PcPlus4E,
-
-output logic [4:0] RS1D,
-output logic [4:0] RS2D,
-
-output logic [2:0] funct3E,
-
-
-output logic MemReadE
+    output logic [2:0] funct3E
 );
 
 //////////////////////////////////////////////////////
@@ -198,7 +196,7 @@ begin
         RegWriteE   <= RegWriteD;
         ResultSrcE  <= ResultSrcD;
         MemWriteE   <= MemWriteD;
-         MemReadE    <= MemReadD;
+        MemReadE    <= MemReadD;
         jumpE       <= jumpD;
         BranchE     <= BranchD;
         ALUControlE <= ALUControlD;

@@ -1,14 +1,12 @@
 `timescale 1ns/1ps
 
-
-
 module ALU(
-input logic [31:0]SrcAE,
-input logic [31:0]SrcBE,
-input logic [3:0]ALUControlE,
-output logic [31:0]ALUResult,
-output logic zeroE,
-output logic less_thanE
+    input logic [31:0]SrcAE,
+    input logic [31:0]SrcBE,
+    input logic [3:0]ALUControlE,
+    output logic [31:0]ALUResult,
+    output logic zeroE,
+    output logic less_thanE
 );
 
 always_comb begin

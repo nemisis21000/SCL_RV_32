@@ -28,7 +28,6 @@ logic [31:0] PCF;
 logic [31:0] InstrF;
 logic [31:0] PcPlus4F;
 
-// New signal
 logic [31:0] PC_BranchNext;
 
 //////////////////////////////////////////////////////
@@ -42,7 +41,6 @@ MUX_2_1 branch_mux(
     .sel(PcSrcE),
 
     .c(PC_BranchNext)
-
 );
 
 //////////////////////////////////////////////////////
@@ -110,8 +108,6 @@ else if(PcSrcE)
         InstrD   <= 32'h00000013; // bubble
         PcD      <= 32'd0;
         PcPlus4D <= 32'd0;
-//         PcD <= PcD;
-//        PcPlus4D <= PcPlus4D;
     end
 
     //////////////////////////////////////////////////

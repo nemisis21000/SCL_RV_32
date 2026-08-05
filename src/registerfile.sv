@@ -18,36 +18,36 @@ module registerfile(
 );
 
     // 32 Registers of 32-bit each
-    logic [31:0] reg_file [31:0];
+logic [31:0] reg_file [31:0];
 
-    integer i;
+integer i;
 
     // Write Logic + Reset
-    always_ff @(posedge clk or negedge rst) begin
+always_ff @(posedge clk or negedge rst) begin
 
         // Active LOW asynchronous reset
-        if(!rst) begin
+    if(!rst) begin
 
-            for(i = 0; i < 32; i = i + 1)
-                reg_file[i] <= 32'd0;
-
-        end
-
-        // Write operation
-        else if(WE3 && (A3 != 5'd0)) begin
-            reg_file[A3] <= WD3;
-        end
+        for(i = 0; i < 32; i = i + 1)
+            reg_file[i] <= 32'd0;
 
     end
 
+        // Write operation
+    else if(WE3 && (A3 != 5'd0)) begin
+        reg_file[A3] <= WD3;
+    end
+
+end
+
     // Read Port 1 with forwarding
-    assign RD1 = (A1 == 5'd0) ? 32'd0 :
-                 ((WE3 && (A3 == A1) && (A3 != 5'd0)) ? WD3 :
+assign RD1 = (A1 == 5'd0) ? 32'd0 :
+             ((WE3 && (A3 == A1) && (A3 != 5'd0)) ? WD3 :
                   reg_file[A1]);
 
     // Read Port 2 with forwarding
-    assign RD2 = (A2 == 5'd0) ? 32'd0 :
-                 ((WE3 && (A3 == A2) && (A3 != 5'd0)) ? WD3 :
-                  reg_file[A2]);
+assign RD2 = (A2 == 5'd0) ? 32'd0 :
+             ((WE3 && (A3 == A2) && (A3 != 5'd0)) ? WD3 :
+             reg_file[A2]);
 
 endmodule

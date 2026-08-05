@@ -1,38 +1,37 @@
 module hazard_unit(
 
-input logic rst,
+    input logic rst,
 
-input logic RegWriteM,
-input logic RegWriteW,
+    input logic RegWriteM,
+    input logic RegWriteW,
 
-input logic [4:0] RdM,
-input logic [4:0] RdW,
+    input logic [4:0] RdM,
+    input logic [4:0] RdW,
 
-input logic [4:0] Rs1E,
-input logic [4:0] Rs2E,
+    input logic [4:0] Rs1E,
+    input logic [4:0] Rs2E,
+    
+    input logic [4:0] Rs1D,
+    input logic [4:0] Rs2D,
 
-input logic [4:0] Rs1D,
-input logic [4:0] Rs2D,
-
-input logic [4:0] RdE,
-
-input logic [1:0] ResultSrcE,
-
-input logic PcSrcE,
-
-input logic bus_stall,
-
+    input logic [4:0] RdE,
+    
+    input logic [1:0] ResultSrcE,
+    
+    input logic PcSrcE,
+    
+    input logic bus_stall,
+    
 ////////////////////
-output logic StallF,
-output logic StallD,
-output logic FlushE,
-output logic FlushD,
-
-output logic [1:0] ForwardAE,
-output logic [1:0] ForwardBE,
-
-output logic lw_stall
-
+    output logic StallF,
+    output logic StallD,
+    output logic StallE,
+    output logic FlushE,
+    output logic FlushD,
+    
+    output logic [1:0] ForwardAE,
+    output logic [1:0] ForwardBE
+    
 );
 //////////////
 
@@ -78,6 +77,7 @@ assign lw_stall =
 
 assign StallF = lw_stall | bus_stall;
 assign StallD = lw_stall | bus_stall;
+assign StallE = bus_stall;
 
 //////////////////////////////////////////////////////
 // FLUSHES

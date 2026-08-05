@@ -24,7 +24,7 @@ module pipeline_top(
         //PC selection//
 logic        PcSrcE;
 logic [31:0] PcTargetE;
-
+        //IF>ID//
 logic [31:0] InstrD, PcD, PcPlus4D;
 
 ////Decode Stage Output
@@ -44,12 +44,12 @@ logic [4:0]  RdE, RS1E, RS2E;
         //Immediate Extend//
 logic [31:0] ImmExtendE;
 
-        //Needed Ahead//
+        //ID>Ex//
 logic [31:0] PcPlus4E;
 logic [2:0]  funct3E;
 
 ////Execute Stage
-        //From Hazard Unit
+        //From Hazard Unit//
 logic [1:0]  ForwardAE, ForwardBE;
 
         //EX>Mem pipeline//
@@ -59,30 +59,28 @@ logic [2:0]  funct3M;
 logic [31:0] WriteDataM;
 logic [1:0]  ResultSrcM;
 logic [31:0] PcPlus4M;
-        
-////Memory Stage
-logic        RegWriteW;
-logic [1:0]  ResultSrcW;
-        //Needed in Writeback stage//
-logic [31:0] ALUResultW, ReadDataW;
 logic        RegWriteM;
 logic [4:0]  RdM;
+
+////Memory Stage
+        //Mem>WB//
+logic [1:0]  ResultSrcW;
+logic [31:0] ALUResultW, ReadDataW;
 logic [4:0]  RdW;
 logic [31:0] PcPlus4W;
 logic [31:0] ResultW;
 
-////Hazard Unit Input
-logic [4:0]  Rs1D, Rs2D;
+////Hazard Unit 
+        //Input//
+logic [4:0]  Rs1D, Rs2D;  //From Decode stage
+logic        RegWriteW, bus_stall;   //From Mem Stage
 
-logic        lw_stall;
-logic        bus_stall;
+        //Output//
 
-////////////////////////////////////////////////////////////
-// HAZARD UNIT OUTPUTS
-////////////////////////////////////////////////////////////
 
 logic StallF_hz;   
 logic StallD_hz;   
+logic StallE_hz;
 logic FlushD_hz;   
 logic FlushE_hz;   
 
@@ -164,7 +162,7 @@ Execute_stage execute(
     .ForwardAE(ForwardAE),
     .ForwardBE(ForwardBE),
     .FlushE(FlushE_hz),
-    .StallM(bus_stall),
+    .StallE(StallE_hz),
     .funct3E(funct3E), 
     .RegWriteM(RegWriteM),
     .ResultSrcM(ResultSrcM),
@@ -248,10 +246,10 @@ hazard_unit ha(
     .ForwardAE(ForwardAE),
     .ForwardBE(ForwardBE),
     .StallF(StallF_hz),      
-    .StallD(StallD_hz),      
+    .StallD(StallD_hz),  
+    .StallE(StallE_hz),    
     .FlushD(FlushD_hz),      
-    .FlushE(FlushE_hz),      
-    .lw_stall(lw_stall)
+    .FlushE(FlushE_hz)
 );
 
 ////////////////////////////////////////////////////////////

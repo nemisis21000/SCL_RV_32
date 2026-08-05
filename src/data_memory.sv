@@ -15,9 +15,7 @@ module jtsc_dmem(
 
     output logic         MEM_WRITE,
     output logic         MEM_READ,
-//    output         MEM_INSTR, useless i think
     input          MEM_READY,
-//    output  [1:0] MEM_ERROR, have to add
     output logic  [31:0] MEM_ADDR,
     output logic  [31:0] MEM_WDATA,
     output logic  [ 3:0] MEM_WSTRB,
@@ -29,7 +27,6 @@ logic [31:0] load_half;
 logic [3:0] wstrb_reg;
 logic req_pending;
 
-//assign MEM_VALID = MemRead || MemWrite;
 assign MEM_WRITE = MemWrite && !req_pending;
 assign MEM_READ = MemRead && !req_pending;
 assign MEM_ADDR = A;
@@ -76,15 +73,10 @@ always_comb begin
     case(funct3M)
 
         3'b000: RD = {{24{load_byte[7]}}, load_byte[7:0]};   // LB
-
         3'b100: RD = {24'b0, load_byte[7:0]};                // LBU
-
         3'b001: RD = {{16{load_half[15]}}, load_half[15:0]}; // LH
-
         3'b101: RD = {16'b0, load_half[15:0]};               // LHU
-
         3'b010: RD = MEM_RDATA;                        // LW
-
         default: RD = 32'b0;
     endcase
 end
