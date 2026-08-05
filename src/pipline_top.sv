@@ -20,8 +20,15 @@ module pipeline_top(
 // PIPELINE WIRE DECLARATIONS
 ////////////////////////////////////////////////////////////
 
+////Fetch Stage
+        //PC selection//
+logic        PcSrcE;
+logic [31:0] PcTargetE;
+
 logic [31:0] InstrD, PcD, PcPlus4D;
 
+////Decode Stage Output
+        //Control Unit//
 logic        RegWriteE;
 logic [1:0]  ResultSrcE;
 logic        MemWriteE, MemReadE;
@@ -29,29 +36,44 @@ logic        jumpE, BranchE;
 logic [3:0]  ALUControlE;
 logic [1:0]  ALUSrcAE;
 logic        ALUSrcBE;
+
+        //Register File//
 logic [31:0] RD1E, RD2E, PCE;
 logic [4:0]  RdE, RS1E, RS2E;
-logic [31:0] ImmExtendE, PcPlus4E;
+
+        //Immediate Extend//
+logic [31:0] ImmExtendE;
+
+        //Needed Ahead//
+logic [31:0] PcPlus4E;
 logic [2:0]  funct3E;
+
+////Execute Stage
+        //From Hazard Unit
+logic [1:0]  ForwardAE, ForwardBE;
+
+        //EX>Mem pipeline//
+logic [31:0] ALUResultM;
 logic        MemWriteM, MemReadM;
 logic [2:0]  funct3M;
-logic        RegWriteM;
+logic [31:0] WriteDataM;
 logic [1:0]  ResultSrcM;
-logic [4:0]  RdM;
 logic [31:0] PcPlus4M;
-logic [31:0] PcTargetE;
-logic        PcSrcE;
-
+        
+////Memory Stage
 logic        RegWriteW;
 logic [1:0]  ResultSrcW;
+        //Needed in Writeback stage//
 logic [31:0] ALUResultW, ReadDataW;
-logic [31:0] WriteDataM;
+logic        RegWriteM;
+logic [4:0]  RdM;
 logic [4:0]  RdW;
 logic [31:0] PcPlus4W;
 logic [31:0] ResultW;
-logic [31:0] ALUResultM;
-logic [1:0]  ForwardAE, ForwardBE;
+
+////Hazard Unit Input
 logic [4:0]  Rs1D, Rs2D;
+
 logic        lw_stall;
 logic        bus_stall;
 
