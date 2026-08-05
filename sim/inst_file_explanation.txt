@@ -98,17 +98,3 @@ eef10113	//addi  x2, x2, 0xEEF   → x2 = 0xDEADBEEF
 0000c537	//lui x10, 12
 
 0000c517	//auipc x10,12
-
-
-
-
-
-
-
-
-
-
-
-
-
-
