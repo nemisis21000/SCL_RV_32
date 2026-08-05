@@ -20,6 +20,8 @@ input logic [1:0] ResultSrcE,
 
 input logic PcSrcE,
 
+input logic bus_stall,
+
 ////////////////////
 output logic StallF,
 output logic StallD,
@@ -30,7 +32,6 @@ output logic [1:0] ForwardAE,
 output logic [1:0] ForwardBE,
 
 output logic lw_stall
-//input logic mem_busy
 
 );
 //////////////
@@ -75,20 +76,15 @@ assign lw_stall =
 // STALLS
 //////////////////////////////////////////////////////
 
-assign StallF = lw_stall;
-assign StallD = lw_stall;
-
-//assign StallF = lw_stall | mem_busy;
-//assign StallD = lw_stall | mem_busy;
+assign StallF = lw_stall | bus_stall;
+assign StallD = lw_stall | bus_stall;
 
 //////////////////////////////////////////////////////
 // FLUSHES
 //////////////////////////////////////////////////////
 
-//assign FlushE = PcSrcE;
-//assign FlushD = PcSrcE  ;
-//assign FlushE = lw_stall | PcSrcE |trap_taken;
 assign FlushD = PcSrcE;
 
-assign FlushE = lw_stall | PcSrcE;
+assign FlushE = (lw_stall | PcSrcE) & ~bus_stall;
+
 endmodule

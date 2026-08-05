@@ -6,23 +6,10 @@ module pipeline_top(
     input  logic        rst,
     output logic [31:0] debug_out,
 
-//    //////// APB interface ////////
-//    output logic [31:0] ALUResultM,
-//    output logic [31:0] WriteDataM,
-//    output logic        MemWriteM,
-//    output logic [2:0]  funct3M,
-//    input  logic [31:0] ReadDataM,
-
-//    output logic        MemReadM,
-//    input  logic        pready,
-//   input logic mem_done,
-
     //AXI
     output logic        MEM_WRITE,
     output logic        MEM_READ,
-//    output         MEM_INSTR, useless i think
     input  logic        MEM_READY,
-//    output  [1:0] MEM_ERROR, have to add
     output logic [31:0] MEM_ADDR,
     output logic [31:0] MEM_WDATA,
     output logic [ 3:0] MEM_WSTRB,
@@ -67,33 +54,15 @@ logic [1:0]  ForwardAE, ForwardBE;
 logic [4:0]  Rs1D, Rs2D;
 logic        lw_stall;
 logic        bus_stall;
-////////////////////////////////////////////////////////////
-// HAZARD UNIT RAW OUTPUTS
-// These are the pure hazard signals - NOT yet combined
-// with bus_stall. Combining happens below before use.
-////////////////////////////////////////////////////////////
-
-logic StallF_hz;   // raw stall from hazard unit
-logic StallD_hz;   // raw stall from hazard unit
-logic FlushD_hz;   // raw flush from hazard unit
-logic FlushE_hz;   // raw flush from hazard unit
 
 ////////////////////////////////////////////////////////////
-// COMBINED STALL/FLUSH SIGNALS
-// bus_stall ORed with hazard stalls AFTER the hazard unit.
-// This is the fix - expressions cannot go on output ports.
+// HAZARD UNIT OUTPUTS
 ////////////////////////////////////////////////////////////
 
-logic StallF_final;
-logic StallD_final;
-logic FlushD_final;
-logic FlushE_final;
-
-assign StallF_final = StallF_hz | bus_stall;
-assign StallD_final = StallD_hz | bus_stall;
-assign FlushD_final = FlushD_hz;               // flush not gated by bus_stall
-assign FlushE_final = FlushE_hz & ~bus_stall;  // don't flush mid-APB-txn
-
+logic StallF_hz;   
+logic StallD_hz;   
+logic FlushD_hz;   
+logic FlushE_hz;   
 
 ////////////////////////////////////////////////////////////
 // FETCH
@@ -103,7 +72,7 @@ IF fetch(
     .clk(clk),
     .rst(rst),
     .PcSrcE(PcSrcE),
-    .StallF(StallF_final),
+    .StallF(StallF_hz),
     .PcTargetE(PcTargetE),
     .InstrD(InstrD),
     .PcD(PcD),
@@ -123,8 +92,8 @@ decode_stage decode(
     .PcPlus4D(PcPlus4D),
     .ResultW(ResultW),
     .RdW(RdW),
-    .StallD(StallD_final),
-    .FlushD(FlushD_final),
+    .StallD(StallD_hz),
+    .FlushD(FlushD_hz),
     .RegWriteE(RegWriteE),
     .ResultSrcE(ResultSrcE),
     .MemWriteE(MemWriteE),
@@ -172,7 +141,7 @@ Execute_stage execute(
     .ResultW(ResultW),
     .ForwardAE(ForwardAE),
     .ForwardBE(ForwardBE),
-    .FlushE(FlushE_final),
+    .FlushE(FlushE_hz),
     .StallM(bus_stall),
     .funct3E(funct3E), 
     .RegWriteM(RegWriteM),
@@ -238,8 +207,6 @@ write_back_stage wb(
 
 ////////////////////////////////////////////////////////////
 // HAZARD UNIT
-// All four outputs are RAW signals - no expressions here.
-// Combining with bus_stall is done via assign above.
 ////////////////////////////////////////////////////////////
 
 hazard_unit ha(
@@ -255,12 +222,13 @@ hazard_unit ha(
     .ResultSrcE(ResultSrcE),
     .RdE(RdE),
     .PcSrcE(PcSrcE),
+    .bus_stall(bus_stall),
     .ForwardAE(ForwardAE),
     .ForwardBE(ForwardBE),
-    .StallF(StallF_hz),      // raw output - no expression
-    .StallD(StallD_hz),      // raw output - no expression
-    .FlushD(FlushD_hz),      // raw output - no expression
-    .FlushE(FlushE_hz),      // raw output - no expression
+    .StallF(StallF_hz),      
+    .StallD(StallD_hz),      
+    .FlushD(FlushD_hz),      
+    .FlushE(FlushE_hz),      
     .lw_stall(lw_stall)
 );
 
