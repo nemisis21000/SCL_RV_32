@@ -13,7 +13,11 @@ module pipeline_top(
     output logic [31:0] MEM_ADDR,
     output logic [31:0] MEM_WDATA,
     output logic [ 3:0] MEM_WSTRB,
-    input  logic [31:0] MEM_RDATA
+    input  logic [31:0] MEM_RDATA,
+    
+    //Imem Macro
+    output logic [31:0] INSTR_ADD,
+    input logic  [31:0] INSTR
 );
 
 ////////////////////////////////////////////////////////////
@@ -91,6 +95,8 @@ logic FlushE_hz;
 IF fetch(
     .clk(clk),
     .rst(rst),
+    .INSTR_ADD(INSTR_ADD),
+    .INSTR(INSTR),
     .PcSrcE(PcSrcE),
     .StallF(StallF_hz),
     .PcTargetE(PcTargetE),

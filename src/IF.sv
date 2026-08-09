@@ -5,6 +5,10 @@ module IF(
 input logic clk,
 input logic rst,
 
+//Imem Macro
+output logic [31:0] INSTR_ADD,
+input  logic [31:0] INSTR,
+
 // Branch/Jump control
 input logic PcSrcE,
 input logic StallF,
@@ -66,6 +70,8 @@ Pc_Module Pc(
 inst_memory inst_mem(
 
     .A(PCF),
+    .INSTR_ADD(INSTR_ADD),
+    .INSTR(INSTR),
     .RD(InstrF)
 
 );
