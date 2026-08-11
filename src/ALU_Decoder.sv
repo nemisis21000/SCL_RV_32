@@ -12,8 +12,19 @@ always_comb begin
     case (ALUOp)
     //load,store,AUIPC,LUI add
     2'b00 : ALUControl = 4'b0000;
-    //branch sub
-    2'b01 : ALUControl = 4'b0001;
+    //branch
+    2'b01 :
+    begin
+        case(funct3)
+        3'b000: ALUControl = 4'b0001;   //sub for beq
+        3'b001: ALUControl = 4'b0001;   //sub for bne
+        3'b100: ALUControl = 4'b1000;   //slt for blt
+        3'b101: ALUControl = 4'b1000;   //slt for bge
+        3'b110: ALUControl = 4'b1001;   //sltu for bltu
+        3'b111: ALUControl = 4'b1001;   //sltu for bgeu
+        default:ALUControl = 4'b0000;
+        endcase
+    end
     //R-type /I-type
     2'b10 : 
     begin
