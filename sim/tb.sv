@@ -37,20 +37,86 @@ module tb_soc_top;
     );
 
     // ---- test program: 32-bit words, RV32I machine code ----
+////iteration 1
     // addi x1, x0, 5        -> 0x00500093
     // addi x2, x0, 10       -> 0x00A00113
     // add  x3, x1, x2       -> 0x002081B3   (RAW hazard on x1 and x2, back-to-back)
     // addi x0, x0, 0  (nop) -> 0x00000013
     // addi x0, x0, 0  (nop) -> 0x00000013
-    localparam int NUM_WORDS = 5;
+////iteration 2
+// ---- test program: 32-bit words, RV32I machine code ----
+// idx  addr   instruction                    hex          notes
+// 0    0x00   addi x1, x0, 5                 0x00500093   x1 = 5
+// 1    0x04   addi x2, x0, 5                 0x00500113   x2 = 5
+// 2    0x08   addi x3, x0, 10                0x00A00193   x3 = 10
+// 3    0x0C   beq  x1, x2, 8                 0x00208463   taken -> 0x14
+// 4    0x10   addi x4, x0, 999   (poison)    0x3E700213   MUST be skipped
+// 5    0x14   addi x4, x0, 111              0x06F00213   branch target
+// 6    0x18   bne  x1, x3, 8                 0x00309463   taken -> 0x20
+// 7    0x1C   addi x5, x0, 999   (poison)    0x3E700293   MUST be skipped
+// 8    0x20   addi x5, x0, 222              0x0DE00293   branch target
+// 9    0x24   bne  x1, x2, 8                 0x00209463   NOT taken (x1==x2)
+// 10   0x28   addi x6, x0, 333              0x14D00313   fallthrough, executes
+// 11   0x2C   blt  x1, x3, 8                 0x0030C463   taken -> 0x34
+// 12   0x30   addi x7, x0, 999   (poison)    0x3E700393   MUST be skipped
+// 13   0x34   addi x7, x0, 444              0x1BC00393   branch target
+// 14   0x38   bge  x3, x1, 8                 0x0011D463   taken -> 0x40
+// 15   0x3C   addi x8, x0, 999   (poison)    0x3E700413   MUST be skipped
+// 16   0x40   addi x8, x0, 555              0x22B00413   branch target
+// 17   0x44   bltu x1, x3, 8                 0x0030E463   taken -> 0x4C
+// 18   0x48   addi x9, x0, 999   (poison)    0x3E700493   MUST be skipped
+// 19   0x4C   addi x9, x0, 666              0x29A00493   branch target
+// 20   0x50   bgeu x3, x1, 8                 0x0011F463   taken -> 0x58
+// 21   0x54   addi x10, x0, 999  (poison)    0x3E700513   MUST be skipped
+// 22   0x58   addi x10, x0, 777             0x30900513   branch target
+// 23   0x5C   addi x0, x0, 0  (nop)          0x00000013
+// 24   0x60   addi x0, x0, 0  (nop)          0x00000013
+// 25   0x64   addi x11, x0, 3               0x00300593   loop counter = 3
+// 26   0x68   LOOP: addi x11, x11, -1        0xFFF58593   decrement
+// 27   0x6C   bne  x11, x0, -4               0xFE059EE3   backward branch -> 0x68
+// 28   0x70   addi x0, x0, 0  (nop)          0x00000013
+// 29   0x74   addi x0, x0, 0  (nop)          0x00000013
+    localparam int NUM_WORDS = 30;
     logic [31:0] test [0:NUM_WORDS-1];
 
-    initial begin
-        test[0] = 32'h00500093;
-        test[1] = 32'h00A00113;
-        test[2] = 32'h002081B3;
-        test[3] = 32'h00000013;
-        test[4] = 32'h00000013;
+initial begin
+////interation 1
+//        test[0] = 32'h00500093;
+//        test[1] = 32'h00A00113;
+//        test[2] = 32'h002081B3;
+//        test[3] = 32'h00000013;
+//        test[4] = 32'h00000013;
+////iteration 2
+test[0]  = 32'h00500093;
+test[1]  = 32'h00500113;
+test[2]  = 32'h00A00193;
+test[3]  = 32'h00208463;
+test[4]  = 32'h3E700213;
+test[5]  = 32'h06F00213;
+test[6]  = 32'h00309463;
+test[7]  = 32'h3E700293;
+test[8]  = 32'h0DE00293;
+test[9]  = 32'h00209463;
+test[10] = 32'h14D00313;
+test[11] = 32'h0030C463;
+test[12] = 32'h3E700393;
+test[13] = 32'h1BC00393;
+test[14] = 32'h0011D463;
+test[15] = 32'h3E700413;
+test[16] = 32'h22B00413;
+test[17] = 32'h0030E463;
+test[18] = 32'h3E700493;
+test[19] = 32'h29A00493;
+test[20] = 32'h0011F463;
+test[21] = 32'h3E700513;
+test[22] = 32'h30900513;
+test[23] = 32'h00000013;
+test[24] = 32'h00000013;
+test[25] = 32'h00300593;
+test[26] = 32'hFFF58593;
+test[27] = 32'hFE059EE3;
+test[28] = 32'h00000013;
+test[29] = 32'h00000013;
     end
 
     // ---- task: send one byte over the loader interface ----
@@ -105,7 +171,7 @@ module tb_soc_top;
         // ---- run and observe ----
         // Run enough cycles to cover: 1-cycle Imem read latency (discussed
         // earlier) + 5 instructions + pipeline drain.
-        repeat (30) @(posedge clk);
+        repeat (500) @(posedge clk);
 
         // ==== RESULT-CHECK HOOK ====
         // No observability output exists yet, so there's nothing to assert

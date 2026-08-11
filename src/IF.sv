@@ -119,9 +119,11 @@ else if(PcSrcE)
 
     begin
 
-        InstrD   <= 32'h00000013; // bubble
-        PcD      <= 32'd4;
-        PcPlus4D <= 32'd0;
+        InstrD         <= 32'h00000013; // bubble
+        PcD            <= 32'd0;
+        PcPlus4D       <= 32'd4;
+        PcD_delay      <= 32'd0;
+        PcPlus4D_delay <= 32'd0;    
     end
 
     //////////////////////////////////////////////////
