@@ -35,6 +35,13 @@ logic [31:0] PcPlus4F;
 logic [31:0] PC_BranchNext;
 
 //////////////////////////////////////////////////////
+// Delay Signals to match with Synchronous Read Instruction
+//////////////////////////////////////////////////////
+
+logic [31:0] PcD_delay;
+logic [31:0] PcPlus4D_delay;
+
+//////////////////////////////////////////////////////
 // Branch/Jump MUX
 //////////////////////////////////////////////////////
 
@@ -99,8 +106,9 @@ begin
 
         InstrD   <= 32'h00000013; // NOP
         PcD      <= 32'd0;
-        PcPlus4D <= 32'd0;
-
+        PcPlus4D <= 32'd4;
+        PcD_delay<= 32'd0;
+        PcPlus4D_delay <= 32'd0;
     end
 
     //////////////////////////////////////////////////
@@ -112,7 +120,7 @@ else if(PcSrcE)
     begin
 
         InstrD   <= 32'h00000013; // bubble
-        PcD      <= 32'd0;
+        PcD      <= 32'd4;
         PcPlus4D <= 32'd0;
     end
 
@@ -123,10 +131,11 @@ else if(PcSrcE)
     else if(!StallF)
     begin
 
-        InstrD   <= InstrF;
-        PcD      <= PCF;
-        PcPlus4D <= PcPlus4F;
-
+        InstrD         <= InstrF;
+        PcD_delay      <= PCF;
+        PcPlus4D_delay <= PcPlus4F;
+        PcD            <= PcD_delay;
+        PcPlus4D       <= PcPlus4D_delay;
     end
 
     //////////////////////////////////////////////////

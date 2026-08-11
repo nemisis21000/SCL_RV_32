@@ -174,7 +174,7 @@ module AXI_RAM_Slave #(
     Data_RAM data_ram (
 
         .clk        (clk),
-        .addr       (ram_addr),
+        .addr       (ram_addr[10:0] ),
         .write_data (ram_wdata),
         .wstrb      (ram_wstrb),
         .read_en    (ram_re),

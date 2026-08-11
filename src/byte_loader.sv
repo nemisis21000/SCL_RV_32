@@ -5,7 +5,7 @@
 // program itself once running, via the existing AXI4-Lite path.
 
 module byte_loader #(
-    parameter int ADDR_WIDTH = 9   // 512 words = 2KB instruction memory subject to change
+    parameter int ADDR_WIDTH = 11   // 1024 words = 4KB instruction memory subject to change
 )(
     // ---- external pins ----
     input  logic       ext_clk,
@@ -13,7 +13,7 @@ module byte_loader #(
     input  logic       load_mode,    // 1 = boot-load mode, 0 = run mode    both rst and load can cause the core to reset
     input  logic [7:0] data_in,
     input  logic       byte_strobe,  // pulse: capture data_in this cycle
-    output logic       load_ready,   // high while loader can accept a byte
+//    output logic       load_ready,   // high while loader can accept a byte
 
     output logic       core_rst_n,  // ext_rst_n gated by load_mode
 
@@ -27,7 +27,7 @@ module byte_loader #(
 
     // Single-cycle capture -> always ready while in load mode.
     //Will depend on the macro
-    assign load_ready = load_mode;
+//    assign load_ready = load_mode;
 
     // ---- byte assembler + address counter ----
     logic [1:0]            byte_cnt;      // which byte of the current word (0..3)
@@ -58,7 +58,7 @@ module byte_loader #(
                     instr_wdata <= {data_in, shift_bytes};
                     instr_waddr <= addr_cnt;
                     instr_we    <= 1'b1;
-                    addr_cnt    <= addr_cnt + 1'b1;
+                    addr_cnt    <= addr_cnt + 4'h4; //!!!This is assuming a 32 bits register macro
                 end else begin
                     shift_bytes <= {data_in, shift_bytes[23:8]};
                     byte_cnt    <= byte_cnt + 1'b1;

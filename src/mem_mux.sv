@@ -6,7 +6,7 @@
 // Instantiate one of these per memory (instruction memory, data memory).
 
 module mem_port_mux #(
-    parameter int ADDR_WIDTH = 9,
+    parameter int ADDR_WIDTH = 11,
     parameter int DATA_WIDTH = 32
 )(
     input  logic                    load_mode,
