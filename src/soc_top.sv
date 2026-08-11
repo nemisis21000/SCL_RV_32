@@ -13,9 +13,6 @@ module soc_top(
 //Pipeline Instruction Bus
 logic [31:0] INSTR_ADD; 
 logic [31:0] INSTR;
-logic [35:0] INSTR_EXT;
-
-assign INSTR = INSTR_EXT[31:0];
 
 //Byte loader
 logic        core_rst_n;
@@ -104,24 +101,14 @@ AXI_TOP axi_top (
 
 );
 
-//Data_RAM Imem(
-//    .clk        (clk),
-//    .addr       (IMEM_ADD),
-//    .write_data (IMEM_WDATA),
-//    .wstrb      (4'b1111),
-//    .read_en    (~IMEM_WE),
-//    .write_en   (IMEM_WE),
-//    .read_data  (INSTR)
-//);
-
-SPRAM_1024x36 Imem(
-    .A          (IMEM_ADD[11:2]),
-    .CE         (clk),
-    .WEB        (~IMEM_WE),
-    .OEB        (IMEM_WE),
-    .CSB        (1'b1),
-    .I          ({4'b0000,IMEM_WDATA}),
-    .O          (INSTR_EXT)
+Data_RAM Imem(
+    .clk        (clk),
+    .addr       (IMEM_ADD),
+    .write_data (IMEM_WDATA),
+    .wstrb      (4'b1111),
+    .read_en    (~IMEM_WE),
+    .write_en   (IMEM_WE),
+    .read_data  (INSTR)
 );
 
 endmodule

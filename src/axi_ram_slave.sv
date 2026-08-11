@@ -171,30 +171,17 @@ module AXI_RAM_Slave #(
     // DATA RAM
     // =====================================================
 
-//    Data_RAM data_ram (
+    Data_RAM data_ram (
 
-//        .clk        (clk),
-//        .addr       (ram_addr[10:0] ),
-//        .write_data (ram_wdata),
-//        .wstrb      (ram_wstrb),
-//        .read_en    (ram_re),
-//        .write_en   (ram_we),
-//        .read_data  (ram_rdata)
+        .clk        (clk),
+        .addr       (ram_addr[10:0] ),
+        .write_data (ram_wdata),
+        .wstrb      (ram_wstrb),
+        .read_en    (ram_re),
+        .write_en   (ram_we),
+        .read_data  (ram_rdata)
 
-//    );
-logic [35:0] ram_rdata_extend;
-assign ram_rdata = ram_rdata_extend[31:0];
-SPRAM_1024x36 Imem(
-    .A          (ram_addr[11:2]),
-    .CE         (clk),
-    .WEB        (~ram_we),
-    .OEB        (~ram_re),
-    .CSB        (1'b1),
-    .I          ({4'b0000,ram_wdata}),
-    .O          (ram_rdata_extend)
-    .O          (ram_rdata_extend)
-);
-
+    );
 
     // =====================================================
     // RMW MERGE NOT AT ALL NEEDED RIGHT NOW ONLY IF THE SRAM MACRO THAT WE GET DOESNT HAVE BYTE ENABLE
