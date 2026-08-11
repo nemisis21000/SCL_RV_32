@@ -37,10 +37,11 @@ logic [31:0] PC_BranchNext;
 //////////////////////////////////////////////////////
 // Delay Signals to match with Synchronous Read Instruction
 //////////////////////////////////////////////////////
-
+logic PcSrcE_delay;
 logic [31:0] PcD_delay;
 logic [31:0] PcPlus4D_delay;
-
+logic FlushIF;
+assign FlushIF = PcSrcE | PcSrcE_delay;
 //////////////////////////////////////////////////////
 // Branch/Jump MUX
 //////////////////////////////////////////////////////
@@ -94,6 +95,13 @@ Pc_adder pc_adder(
 
 );
 
+always_ff @(posedge clk or negedge rst)
+begin
+    if(!rst)
+        PcSrcE_delay <= 1'b0;
+    else
+        PcSrcE_delay <= PcSrcE;
+end
 //////////////////////////////////////////////////////
 // IF/ID Pipeline Register
 //////////////////////////////////////////////////////
@@ -115,7 +123,7 @@ begin
     // Flush on branch/jump OR interrupt
     //////////////////////////////////////////////////
 
-else if(PcSrcE)
+else if(FlushIF)
 
     begin
 
