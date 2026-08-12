@@ -27,9 +27,9 @@ logic [31:0] load_half;
 logic [3:0] wstrb_reg;
 logic req_pending;
 
-assign MEM_WRITE = MemWrite && !req_pending;
+assign MEM_WRITE = (&wstrb_reg)? (MemWrite && !req_pending) : 1'b0;
 assign MEM_READ = MemRead && !req_pending;
-assign MEM_ADDR = A;
+assign MEM_ADDR = A; 
 assign MEM_WDATA = WD;
 assign MEM_WSTRB = (MemWrite)? wstrb_reg : 4'b0000;
 assign StallMem = (MemRead || MemWrite) && !((MEM_WRITE || MEM_READ || req_pending) && MEM_READY);
