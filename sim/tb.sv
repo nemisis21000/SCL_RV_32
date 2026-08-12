@@ -76,7 +76,9 @@ module tb_soc_top;
 // 27   0x6C   bne  x11, x0, -4               0xFE059EE3   backward branch -> 0x68
 // 28   0x70   addi x0, x0, 0  (nop)          0x00000013
 // 29   0x74   addi x0, x0, 0  (nop)          0x00000013
-    localparam int NUM_WORDS = 30;
+// 30   0x78   sw   x10, 0(x0)                0x00a02023
+// 40   0x7c   lw   x12, 0(x0)                0x00002603
+    localparam int NUM_WORDS = 36   ;
     logic [31:0] test [0:NUM_WORDS-1];
 
 initial begin
@@ -117,7 +119,13 @@ test[26] = 32'hFFF58593;
 test[27] = 32'hFE059EE3;
 test[28] = 32'h00000013;
 test[29] = 32'h00000013;
-    end
+test[30] = 32'h00a02023;
+test[31] = 32'h00002603;
+test[32] = 32'h00000013;
+test[33] = 32'h00000013;
+test[34] = 32'h00000013;
+test[35] = 32'h00000013;
+end
 
     // ---- task: send one byte over the loader interface ----
     task automatic send_byte(input logic [7:0] b);
