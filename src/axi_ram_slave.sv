@@ -78,10 +78,11 @@ module AXI_RAM_Slave #(
     // WRITE FSM
     // =====================================================
 
-    localparam WR_IDLE       = 1'd0;
-    localparam WR_WAIT_RESP  = 1'd1;
-
-    logic wr_state;
+    localparam WR_IDLE        = 2'd0;
+    localparam WR_WAIT_RESP   = 2'd1;
+    localparam WR_RMW_READ    = 2'd2;
+    localparam WR_RMW_WRITE   = 2'd2;
+    logic [1:0] wr_state;
 
     // =====================================================
     // READ FSM
@@ -176,28 +177,24 @@ module AXI_RAM_Slave #(
         .clk        (clk),
         .addr       (ram_addr[10:0] ),
         .write_data (ram_wdata),
-        .wstrb      (ram_wstrb),
+        .wstrb      (4'b1111),
         .read_en    (ram_re),
         .write_en   (ram_we),
         .read_data  (ram_rdata)
 
     );
 
-    // =====================================================
-    // RMW MERGE NOT AT ALL NEEDED RIGHT NOW ONLY IF THE SRAM MACRO THAT WE GET DOESNT HAVE BYTE ENABLE
-    // =====================================================
-
     logic [31:0] merged_data;
 
     always_comb begin
         merged_data = ram_rdata;
-        if (wstrb_reg[0])
+        if (wstrb_now[0])
             merged_data[7:0] = wdata_reg[7:0];
-        if (wstrb_reg[1])
+        if (wstrb_now[1])
             merged_data[15:8] = wdata_reg[15:8];
-        if (wstrb_reg[2])
+        if (wstrb_now[2])
             merged_data[23:16] = wdata_reg[23:16];
-        if (wstrb_reg[3])
+        if (wstrb_now[3])
             merged_data[31:24] = wdata_reg[31:24];
     end
 
@@ -254,13 +251,35 @@ module AXI_RAM_Slave #(
                             s_axi_bvalid <= 1'b1;
                             wr_state <= WR_WAIT_RESP;
                         end
-                        // WRITE
-                        else begin
+                        // FULL WRITE
+                        else if (wstrb_now == 4'b1111) begin
                             s_axi_bresp  <= RESP_OKAY;
                             s_axi_bvalid <= 1'b1;
                             wr_state <= WR_WAIT_RESP;
                         end
+                        //PARTIAL WRITES
+                        else begin
+                            wr_state <= WR_RMW_READ;
+                        end
                     end
+                end
+                
+                // =============================================
+                // RMW PHASE 1: internal read issued (comb block above)
+                // ram_rdata will be valid on the NEXT cycle
+                // =============================================
+                WR_RMW_READ: begin
+                    wr_state <= WR_RMW_WRITE;
+                end
+                
+                // =============================================
+                // RMW PHASE 2: ram_rdata now valid, merged_data
+                // computed combinationally, ram_we issued this cycle
+                // =============================================
+                WR_RMW_WRITE: begin
+                    s_axi_bresp  <= RESP_OKAY;
+                    s_axi_bvalid <= 1'b1;
+                    wr_state     <= WR_WAIT_RESP;
                 end
                 
                 // =============================================
@@ -330,8 +349,6 @@ module AXI_RAM_Slave #(
     always_comb begin
         ram_addr  = 32'b0;
         ram_wdata = 32'b0;
-        ram_wstrb = 4'b0;
-
         ram_we    = 1'b0;
         ram_re    = 1'b0;
         
@@ -340,14 +357,25 @@ module AXI_RAM_Slave #(
     // =============================================
     //FULL WRITE
     //==============================================
-        if(wr_state == WR_IDLE && aw_viable && w_viable && addr_valid(awaddr_now)) begin
+        if(wr_state == WR_IDLE && aw_viable && w_viable &&
+           addr_valid(awaddr_now) && (wstrb_now == 4'b1111)) begin
             ram_addr  = awaddr_now;
             ram_wdata = wdata_now;
-            ram_wstrb = wstrb_now;
                     
             ram_we = 1'b1;
         end
-            
+        
+        else if (wr_state == WR_RMW_READ) begin
+            ram_addr = awaddr_reg;
+            ram_re   = 1'b1;
+        end            
+        
+        else if (wr_state == WR_RMW_WRITE) begin
+            ram_addr  = awaddr_reg;
+            ram_wdata = merged_data;
+            ram_we    = 1'b1;
+        end
+
             // =============================================
             // READ FSM OWNS BUS
             // =============================================

@@ -62,23 +62,26 @@ module tb_soc_top;
 // 13   0x34   addi x7, x0, 444              0x1BC00393   branch target
 // 14   0x38   bge  x3, x1, 8                 0x0011D463   taken -> 0x40
 // 15   0x3C   addi x8, x0, 999   (poison)    0x3E700413   MUST be skipped
-// 16   0x40   addi x8, x0, 555              0x22B00413   branch target
+// 16   0x40   addi x8, x0, 555               0x22B00413   branch target
 // 17   0x44   bltu x1, x3, 8                 0x0030E463   taken -> 0x4C
 // 18   0x48   addi x9, x0, 999   (poison)    0x3E700493   MUST be skipped
-// 19   0x4C   addi x9, x0, 666              0x29A00493   branch target
+// 19   0x4C   addi x9, x0, 666               0x29A00493   branch target
 // 20   0x50   bgeu x3, x1, 8                 0x0011F463   taken -> 0x58
 // 21   0x54   addi x10, x0, 999  (poison)    0x3E700513   MUST be skipped
-// 22   0x58   addi x10, x0, 777             0x30900513   branch target
+// 22   0x58   addi x10, x0, 777              0x30900513   branch target
 // 23   0x5C   addi x0, x0, 0  (nop)          0x00000013
 // 24   0x60   addi x0, x0, 0  (nop)          0x00000013
-// 25   0x64   addi x11, x0, 3               0x00300593   loop counter = 3
+// 25   0x64   addi x11, x0, 3                0x00300593   loop counter = 3
 // 26   0x68   LOOP: addi x11, x11, -1        0xFFF58593   decrement
 // 27   0x6C   bne  x11, x0, -4               0xFE059EE3   backward branch -> 0x68
 // 28   0x70   addi x0, x0, 0  (nop)          0x00000013
 // 29   0x74   addi x0, x0, 0  (nop)          0x00000013
 // 30   0x78   sw   x10, 0(x0)                0x00a02023
-// 40   0x7c   lw   x12, 0(x0)                0x00002603
-    localparam int NUM_WORDS = 36   ;
+// 31   0x7c   lw   x12, 0(x0)                0x00002603
+// 32   0x80   addi x13,x0, -1                0xfff00693
+// 33   0x84   sh x13, 4(x0)                  0x00d01223
+// 34   0x88   sh x13, 10(x0)                 0x00d01523
+    localparam int NUM_WORDS = 41   ;
     logic [31:0] test [0:NUM_WORDS-1];
 
 initial begin
@@ -121,10 +124,16 @@ test[28] = 32'h00000013;
 test[29] = 32'h00000013;
 test[30] = 32'h00a02023;
 test[31] = 32'h00002603;
-test[32] = 32'h00000013;
-test[33] = 32'h00000013;
-test[34] = 32'h00000013;
+test[32] = 32'hfff00693;
+test[33] = 32'h00d01223;
+test[34] = 32'h00d01523;
 test[35] = 32'h00000013;
+test[36] = 32'h00000013;
+test[37] = 32'h00000013;
+test[38] = 32'h00000013;
+test[39] = 32'h00000013;
+test[40] = 32'h00000013;
+test[41] = 32'h00000013;
 end
 
     // ---- task: send one byte over the loader interface ----

@@ -138,7 +138,7 @@ else if(FlushIF)
     // Normal update
     //////////////////////////////////////////////////
 
-    else if(!StallF)
+    else// if(!StallF)
     begin
 
         InstrD         <= InstrF;
