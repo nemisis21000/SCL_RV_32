@@ -81,6 +81,7 @@ module tb_soc_top;
 // 32   0x80   addi x13,x0, -1                0xfff00693
 // 33   0x84   sh x13, 4(x0)                  0x00d01223
 // 34   0x88   sh x13, 10(x0)                 0x00d01523
+// 34 to 41 nop
     localparam int NUM_WORDS = 41   ;
     logic [31:0] test [0:NUM_WORDS-1];
 
