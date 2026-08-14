@@ -81,7 +81,7 @@ module AXI_RAM_Slave #(
     localparam WR_IDLE        = 2'd0;
     localparam WR_WAIT_RESP   = 2'd1;
     localparam WR_RMW_READ    = 2'd2;
-    localparam WR_RMW_WRITE   = 2'd2;
+    localparam WR_RMW_WRITE   = 2'd3;
     logic [1:0] wr_state;
 
     // =====================================================
