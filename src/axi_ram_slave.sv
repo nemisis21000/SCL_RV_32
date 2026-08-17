@@ -27,7 +27,7 @@ module AXI_RAM_Slave #(
 
 )(
     input logic                       clk,
-    input logic                       reset,          // Active LOW
+    input logic                       rst_n,          // Active LOW
 
     // =====================================================
     // WRITE ADDRESS CHANNEL
@@ -80,8 +80,7 @@ module AXI_RAM_Slave #(
 
     localparam WR_IDLE        = 2'd0;
     localparam WR_WAIT_RESP   = 2'd1;
-    localparam WR_RMW_READ    = 2'd2;
-    localparam WR_RMW_WRITE   = 2'd3;
+    localparam WR_RMW         = 2'd2;
     logic [1:0] wr_state;
 
     // =====================================================
@@ -117,11 +116,11 @@ module AXI_RAM_Slave #(
 
     logic  [31:0] ram_addr;
     logic  [31:0] ram_wdata;
-    logic  [ 3:0] ram_wstrb;
     logic         ram_we;
     logic         ram_re;
-
+    
     logic [31:0] ram_rdata;
+    logic [35:0] ram_rdata_ext;
 
     // =====================================================
     // HANDSHAKE DETECT
@@ -168,6 +167,7 @@ module AXI_RAM_Slave #(
                 (addr[31:12] == 20'h00000);
         end
     endfunction
+    
     // =====================================================
     // DATA RAM
     // =====================================================
@@ -184,10 +184,22 @@ module AXI_RAM_Slave #(
 
     );
 
-    logic [31:0] merged_data;
+
+    //SPRAM_1024x36 Imem(
+    //    .A          (ram_addr[11:2]),
+    //    .CE         (clk),
+    //    .WEB        (~ram_we),
+    //    .OEB        (ram_re),
+    //    .CSB        (ram_re | ram_we),
+    //    .I          ({4'b0000,ram_wdata}),
+    //    .O          (ram_rdata_ext)
+    //);
+
+logic [31:0] merged_data;
 
     always_comb begin
         merged_data = ram_rdata;
+//        merged_data = ram_rdata_ext[31:0];
         if (wstrb_now[0])
             merged_data[7:0] = wdata_reg[7:0];
         if (wstrb_now[1])
@@ -202,8 +214,8 @@ module AXI_RAM_Slave #(
     // WRITE FSM
     // =====================================================
 
-    always_ff @(posedge clk or negedge reset) begin
-        if (!reset) begin
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
             s_axi_bvalid <= 1'b0;
             s_axi_bresp  <= RESP_OKAY;
 
@@ -251,32 +263,24 @@ module AXI_RAM_Slave #(
                             s_axi_bvalid <= 1'b1;
                             wr_state <= WR_WAIT_RESP;
                         end
-                        // FULL WRITE
+                        // FULL WRITE: ram_we issued this cycle 
                         else if (wstrb_now == 4'b1111) begin
                             s_axi_bresp  <= RESP_OKAY;
                             s_axi_bvalid <= 1'b1;
                             wr_state <= WR_WAIT_RESP;
                         end
-                        //PARTIAL WRITES
+                        //PARTIAL WRITES: ram_re issued this cycle
                         else begin
-                            wr_state <= WR_RMW_READ;
+                            wr_state <= WR_RMW;
                         end
                     end
                 end
                 
                 // =============================================
-                // RMW PHASE 1: internal read issued (comb block above)
-                // ram_rdata will be valid on the NEXT cycle
-                // =============================================
-                WR_RMW_READ: begin
-                    wr_state <= WR_RMW_WRITE;
-                end
-                
-                // =============================================
-                // RMW PHASE 2: ram_rdata now valid, merged_data
+                // RMW: ram_rdata_ext now valid, merged_data
                 // computed combinationally, ram_we issued this cycle
                 // =============================================
-                WR_RMW_WRITE: begin
+                WR_RMW: begin
                     s_axi_bresp  <= RESP_OKAY;
                     s_axi_bvalid <= 1'b1;
                     wr_state     <= WR_WAIT_RESP;
@@ -302,8 +306,8 @@ module AXI_RAM_Slave #(
     // =====================================================
     // READ FSM
     // =====================================================
-    always_ff @(posedge clk or negedge reset) begin
-        if (!reset) begin
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
             s_axi_rvalid <= 1'b0;
             s_axi_rresp  <= RESP_OKAY;
             
@@ -353,7 +357,7 @@ module AXI_RAM_Slave #(
         ram_re    = 1'b0;
         
         s_axi_rdata = rd_err ? 32'b0 : ram_rdata;
-
+    //  s_axi_rdata = rd_err ? 32'b0 : ram_rdata_ext[31:0];
     // =============================================
     //FULL WRITE
     //==============================================
@@ -365,12 +369,13 @@ module AXI_RAM_Slave #(
             ram_we = 1'b1;
         end
         
-        else if (wr_state == WR_RMW_READ) begin
+        else if (wr_state == WR_IDLE && aw_viable && w_viable &&
+                 addr_valid(awaddr_now) && !(&wstrb_now)) begin
             ram_addr = awaddr_reg;
             ram_re   = 1'b1;
         end            
         
-        else if (wr_state == WR_RMW_WRITE) begin
+        else if (wr_state == WR_RMW) begin
             ram_addr  = awaddr_reg;
             ram_wdata = merged_data;
             ram_we    = 1'b1;
