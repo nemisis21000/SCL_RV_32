@@ -10,12 +10,13 @@ module SPRAM_1024x36 (
 
     // memory array
     logic [35:0] mem [1024];
-
+    logic OEB_delay;
     // registered read data (internal, before OEB tri-state mux)
     logic [35:0] dout_reg;
 
     // synchronous read/write logic
     always_ff @(posedge CE) begin
+        OEB_delay <= OEB;
         if (!CSB) begin
             if (!WEB)
                 mem[A] <= I;        // write cycle
@@ -26,6 +27,6 @@ module SPRAM_1024x36 (
     end
 
     // output enable mux - tri-state when OEB=1
-    assign O = (!OEB) ? dout_reg : 36'bz;
+    assign O = (!OEB_delay) ? dout_reg : 36'bz;
 
 endmodule
