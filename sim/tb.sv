@@ -29,7 +29,7 @@ module tb_soc_top;
     // ---- DUT ----
     soc_top dut (
         .clk         (clk),
-        .rst         (rst),
+        .rst_n         (rst),
         .debug_out   (debug_out),
         .load_mode   (load_mode),
         .data_in     (data_in),
@@ -82,6 +82,67 @@ module tb_soc_top;
 // 33   0x84   sh x13, 4(x0)                  0x00d01223
 // 34   0x88   sh x13, 10(x0)                 0x00d01523
 // 34 to 41 nop
+////iteration 3
+// ---- test program: 32-bit words, RV32I machine code ----
+// idx addr   instruction                              hex          notes
+// 0   0x00   addi x1, x0, 5                           0x00500093   x1 = 5
+// 1   0x04   addi x2, x0, 3                           0x00300113   x2 = 3
+// 2   0x08   addi x3, x0, -1                          0xFFF00193   x3 = 0xFFFFFFFF
+// 3   0x0C   addi x4, x0, 256                         0x10000213   x4 = 0x100 (mem base)
+//
+// ---- R-type ----
+// 4   0x10   add  x5, x1, x2                          0x002082B3   x5 = 8
+// 5   0x14   sub  x6, x1, x2                          0x40208333   x6 = 2
+// 6   0x18   and  x7, x1, x2                          0x0020F3B3   x7 = 1
+// 7   0x1C   or   x8, x1, x2                          0x0020E433   x8 = 7
+// 8   0x20   xor  x9, x1, x2                          0x0020C4B3   x9 = 6
+// 9   0x24   sll  x10, x1, x2                         0x00209533   x10 = 40
+// 10  0x28   srl  x11, x1, x2                         0x0020D5B3   x11 = 0
+// 11  0x2C   sra  x12, x3, x2                         0x4021D633   x12 = 0xFFFFFFFF
+// 12  0x30   slt  x13, x2, x1                         0x001126B3   x13 = 1
+// 13  0x34   sltu x14, x1, x2                         0x0020B733   x14 = 0
+//
+// ---- I-type ----
+// 14  0x38   addi  x15, x1, 100                       0x06408793   x15 = 105
+// 15  0x3C   andi  x16, x1, 0x0F                      0x00F0F813   x16 = 5
+// 16  0x40   ori   x17, x1, 0x0F                      0x00F0E893   x17 = 15
+// 17  0x44   xori  x18, x1, 0x0F                      0x00F0C913   x18 = 10
+// 18  0x48   slti  x19, x1, 10                        0x00A0A993   x19 = 1
+// 19  0x4C   sltiu x20, x1, 10                        0x00A0BA13   x20 = 1
+// 20  0x50   slli  x21, x1, 2                         0x00209A93   x21 = 20
+// 21  0x54   srli  x22, x1, 1                         0x0010DB13   x22 = 2
+// 22  0x58   srai  x23, x3, 1                         0x4011DB93   x23 = 0xFFFFFFFF
+//
+// ---- U-type ----
+// 23  0x5C   lui   x24, 0x12345                       0x12345C37   x24 = 0x12345000
+// 24  0x60   auipc x25, 0x1                           0x00001C97   x25 = PC + 0x1000
+//
+// ---- Store (base x4 = 0x100) ----
+// 25  0x64   sw x1, 0(x4)                             0x00122023   mem[0x100] = 5
+// 26  0x68   sh x2, 4(x4)                             0x00221223   mem[0x104] = 3
+// 27  0x6C   sb x3, 8(x4)                             0x00320423   mem[0x108] = 0xFF
+//
+// ---- Load ----
+// 28  0x70   lw  x26, 0(x4)                           0x00022D03   x26 = 5
+// 29  0x74   lh  x27, 4(x4)                           0x00421D83   x27 = 3
+// 30  0x78   lb  x28, 8(x4)                            0x00820E03   x28 = 0xFFFFFFFF (sign-ext)
+// 31  0x7C   lhu x29, 4(x4)                           0x00425E83   x29 = 3
+// 32  0x80   lbu x30, 8(x4)                           0x00824F03   x30 = 0x000000FF (zero-ext)
+//
+// ---- Branch (taken, poison must be skipped) ----
+// 33  0x84   beq x1, x1, 8                            0x00108463   taken -> 0x8C
+// 34  0x88   addi x31, x0, 999 (poison)               0x3E700F93   MUST be skipped
+// 35  0x8C   addi x31, x0, 111                        0x06F00F93   branch target, x31 = 111
+//
+// ---- JAL ----
+// 36  0x90   jal x5, 8                                0x008002EF   x5 = 0x94 (return addr), PC -> 0x98
+// 37  0x94   addi x0, x0, 0 (poison/nop)              0x00000013   MUST be skipped
+// 38  0x98   addi x0, x0, 0 (jal target, nop)         0x00000013   jal lands here
+//
+// ---- JALR ----
+// 39  0x9C   addi x6, x0, 164 (jalr target)           0x0A400313   x6 = 0xA4
+// 40  0xA0   jalr x7, x6, 0                           0x000303E7   x7 = 0xA4 (return addr), PC -> 0xA4
+// 41  0xA4   addi x0, x0, 0 (nop, landing)            0x00000013   jalr lands here
     localparam int NUM_WORDS = 41   ;
     logic [31:0] test [0:NUM_WORDS-1];
 
@@ -93,47 +154,89 @@ initial begin
 //        test[3] = 32'h00000013;
 //        test[4] = 32'h00000013;
 ////iteration 2
+//test[0]  = 32'h00500093;
+//test[1]  = 32'h00500113;
+//test[2]  = 32'h00A00193;
+//test[3]  = 32'h00208463;
+//test[4]  = 32'h3E700213;
+//test[5]  = 32'h06F00213;
+//test[6]  = 32'h00309463;
+//test[7]  = 32'h3E700293;
+//test[8]  = 32'h0DE00293;
+//test[9]  = 32'h00209463;
+//test[10] = 32'h14D00313;
+//test[11] = 32'h0030C463;
+//test[12] = 32'h3E700393;
+//test[13] = 32'h1BC00393;
+//test[14] = 32'h0011D463;
+//test[15] = 32'h3E700413;
+//test[16] = 32'h22B00413;
+//test[17] = 32'h0030E463;
+//test[18] = 32'h3E700493;
+//test[19] = 32'h29A00493;
+//test[20] = 32'h0011F463;
+//test[21] = 32'h3E700513;
+//test[22] = 32'h30900513;
+//test[23] = 32'h00000013;
+//test[24] = 32'h00000013;
+//test[25] = 32'h00300593;
+//test[26] = 32'hFFF58593;
+//test[27] = 32'hFE059EE3;
+//test[28] = 32'h00000013;
+//test[29] = 32'h00000013;
+//test[30] = 32'h00a02023;
+//test[31] = 32'h00002603;
+//test[32] = 32'hfff00693;
+//test[33] = 32'h00d01223;
+//test[34] = 32'h00d01523;
+//test[35] = 32'h00000013;
+//test[36] = 32'h00000013;
+//test[37] = 32'h00000013;
+//test[38] = 32'h00000013;
+//test[39] = 32'h00000013;
+//test[40] = 32'h00000013;
+//test[41] = 32'h00000013;
 test[0]  = 32'h00500093;
-test[1]  = 32'h00500113;
-test[2]  = 32'h00A00193;
-test[3]  = 32'h00208463;
-test[4]  = 32'h3E700213;
-test[5]  = 32'h06F00213;
-test[6]  = 32'h00309463;
-test[7]  = 32'h3E700293;
-test[8]  = 32'h0DE00293;
-test[9]  = 32'h00209463;
-test[10] = 32'h14D00313;
-test[11] = 32'h0030C463;
-test[12] = 32'h3E700393;
-test[13] = 32'h1BC00393;
-test[14] = 32'h0011D463;
-test[15] = 32'h3E700413;
-test[16] = 32'h22B00413;
-test[17] = 32'h0030E463;
-test[18] = 32'h3E700493;
-test[19] = 32'h29A00493;
-test[20] = 32'h0011F463;
-test[21] = 32'h3E700513;
-test[22] = 32'h30900513;
-test[23] = 32'h00000013;
-test[24] = 32'h00000013;
-test[25] = 32'h00300593;
-test[26] = 32'hFFF58593;
-test[27] = 32'hFE059EE3;
-test[28] = 32'h00000013;
-test[29] = 32'h00000013;
-test[30] = 32'h00a02023;
-test[31] = 32'h00002603;
-test[32] = 32'hfff00693;
-test[33] = 32'h00d01223;
-test[34] = 32'h00d01523;
-test[35] = 32'h00000013;
-test[36] = 32'h00000013;
+test[1]  = 32'h00300113;
+test[2]  = 32'hFFF00193;
+test[3]  = 32'h10000213;
+test[4]  = 32'h002082B3;
+test[5]  = 32'h40208333;
+test[6]  = 32'h0020F3B3;
+test[7]  = 32'h0020E433;
+test[8]  = 32'h0020C4B3;
+test[9]  = 32'h00209533;
+test[10] = 32'h0020D5B3;
+test[11] = 32'h4021D633;
+test[12] = 32'h001126B3;
+test[13] = 32'h0020B733;
+test[14] = 32'h06408793;
+test[15] = 32'h00F0F813;
+test[16] = 32'h00F0E893;
+test[17] = 32'h00F0C913;
+test[18] = 32'h00A0A993;
+test[19] = 32'h00A0BA13;
+test[20] = 32'h00209A93;
+test[21] = 32'h0010DB13;
+test[22] = 32'h4011DB93;
+test[23] = 32'h12345C37;
+test[24] = 32'h00001C97;
+test[25] = 32'h00122023;
+test[26] = 32'h00221223;
+test[27] = 32'h00320423;
+test[28] = 32'h00022D03;
+test[29] = 32'h00421D83;
+test[30] = 32'h00820E03;
+test[31] = 32'h00425E83;
+test[32] = 32'h00824F03;
+test[33] = 32'h00108463;
+test[34] = 32'h3E700F93;
+test[35] = 32'h06F00F93;
+test[36] = 32'h008002EF;
 test[37] = 32'h00000013;
 test[38] = 32'h00000013;
-test[39] = 32'h00000013;
-test[40] = 32'h00000013;
+test[39] = 32'h0A400313;
+test[40] = 32'h000303E7;
 test[41] = 32'h00000013;
 end
 
