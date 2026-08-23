@@ -1,32 +1,31 @@
-`timescale 1ns / 1ps 
-module Data_RAM(
-    input logic        clk,
-    input logic [10:0] addr,
-    input logic [31:0] write_data,
-    input logic [ 3:0] wstrb,
-    input logic        read_en,
-    input logic        write_en,
-    output logic [31:0] read_data
-    );
-     
-    logic [31:0] ram [0:1023];
-    logic [9:0] sel_addr;
-    
-    assign sel_addr = addr[10:2];
-    
-    always_ff@(posedge clk)
-    begin
-    
-        read_data <= 32'b00;
-        
-        if(write_en) begin
-            for (int i = 0; i < 4; i = i + 1) begin
-                if (wstrb[i]) begin
-                    ram[sel_addr][8*i +: 8] <= write_data[8*i +: 8];
-                end
-            end
+module SPRAM_1024x36 (
+    input  logic         CE,     // clock (rising edge)
+    input  logic         CSB,    // active-low chip select
+    input  logic         WEB,    // active-low write enable
+    input  logic         OEB,    // active-low output enable
+    input  logic [9:0]   A,      // address
+    input  logic [35:0]  I,      // write data
+    output logic [35:0]  O       // read data (registered)
+);
+
+    // memory array
+    logic [35:0] mem [1024];
+
+    // registered read data (internal, before OEB tri-state mux)
+    logic [35:0] dout_reg;
+
+    // synchronous read/write logic
+    always_ff @(posedge CE) begin
+        if (!CSB) begin
+            if (!WEB)
+                mem[A] <= I;        // write cycle
+            else
+                dout_reg <= mem[A]; // read cycle - registered
         end
-        else if(read_en)
-            read_data <= ram[sel_addr];      
+        // if CSB=1 (deselected), dout_reg holds
     end
+
+    // output enable mux - tri-state when OEB=1
+    assign O = (!OEB) ? dout_reg : 36'bz;
+
 endmodule
