@@ -3,7 +3,7 @@
 module IF(
 
 input logic clk,
-input logic rst,
+input logic rst_n,
 
 //Imem Macro
 output logic [31:0] INSTR_ADD,
@@ -62,7 +62,7 @@ MUX_2_1 branch_mux(
 Pc_Module Pc(
 
     .clk(clk),
-    .rst(rst),
+    .rst_n(rst_n),
 
     .Pc_next(PC_BranchNext),
     .Pc(PCF),
@@ -94,30 +94,22 @@ Pc_adder pc_adder(
     .PcF_4(PcPlus4F)
 
 );
+
 //STALLM check
 logic StallF_reg;
 logic [31:0] sINSTR;
-always_ff @(posedge clk or negedge rst)
-begin
-    if(!rst)
-        PcSrcE_delay <= 1'b0;
-    else begin
-        PcSrcE_delay <= PcSrcE;
-        StallF_reg   <= StallF;   
-    end
-    
-    if(StallF && (~StallF_reg))
-        sINSTR <= InstrF;
-end
+
 //////////////////////////////////////////////////////
-// IF/ID Pipeline Register
+// Combined IF/ID Pipeline Register + Stall-replay logic
 //////////////////////////////////////////////////////
 
-always_ff @(posedge clk or negedge rst)
+always_ff @(posedge clk or negedge rst_n)
 begin
-
-    if(!rst)
+    if(!rst_n)
     begin
+        PcSrcE_delay   <= 1'b0;
+        StallF_reg     <= 1'b0;
+        sINSTR         <= 32'h00000013;
 
         InstrD         <= 32'h00000013; // NOP
         PcD            <= 32'd0;
@@ -125,62 +117,48 @@ begin
         PcD_delay      <= 32'd0;
         PcPlus4D_delay <= 32'd0;
     end
-
-    //////////////////////////////////////////////////
-    // Flush on branch/jump OR interrupt
-    //////////////////////////////////////////////////
-
-else if(FlushIF)
-
-    begin
-
-        InstrD         <= 32'h00000013; // bubble
-        PcD            <= 32'd0;
-        PcPlus4D       <= 32'd4;
-        PcD_delay      <= 32'd0;
-        PcPlus4D_delay <= 32'd0;    
-    end
-
-    //////////////////////////////////////////////////
-    // Stall -> hold current values
-    //////////////////////////////////////////////////
-
-    else if(StallF)
-    begin
-
-        InstrD         <= InstrD;
-        PcD_delay      <= PcD_delay;
-        PcPlus4D_delay <= PcPlus4D_delay;
-        PcD            <= PcD;
-        PcPlus4D       <= PcPlus4D;
-    end
-    
-    //////////////////////////////////////////////////
-    // Normal update
-    ////////////////////////////////////////////////// 
-    
-    else if ((~StallF) && StallF_reg)
-    begin
-        InstrD <= sINSTR;
-        PcD_delay      <= PCF;
-        PcPlus4D_delay <= PcPlus4F;
-        PcD            <= PcD_delay;
-        PcPlus4D       <= PcPlus4D_delay;
-    end
     else
     begin
-        InstrD         <= InstrF;
-        PcD_delay      <= PCF;
-        PcPlus4D_delay <= PcPlus4F;
-        PcD            <= PcD_delay;
-        PcPlus4D       <= PcPlus4D_delay;
+        // -------- delay/tracking signals (always update) --------
+        PcSrcE_delay <= PcSrcE;
+        StallF_reg   <= FlushIF ? 1'b0 : StallF;
+
+        if(StallF && (~StallF_reg))
+            sINSTR <= InstrF;
+
+        // -------- IF/ID pipeline register --------
+        if(FlushIF)
+        begin
+            InstrD         <= 32'h00000013; // bubble
+            PcD            <= 32'd0;
+            PcPlus4D       <= 32'd4;
+            PcD_delay      <= 32'd0;
+            PcPlus4D_delay <= 32'd0;
+        end
+        else if(StallF)
+        begin
+            InstrD         <= InstrD;
+            PcD_delay      <= PcD_delay;
+            PcPlus4D_delay <= PcPlus4D_delay;
+            PcD            <= PcD;
+            PcPlus4D       <= PcPlus4D;
+        end
+        else if ((~StallF) && StallF_reg)
+        begin
+            InstrD         <= sINSTR;
+            PcD_delay      <= PCF;
+            PcPlus4D_delay <= PcPlus4F;
+            PcD            <= PcD_delay;
+            PcPlus4D       <= PcPlus4D_delay;
+        end
+        else
+        begin
+            InstrD         <= InstrF;
+            PcD_delay      <= PCF;
+            PcPlus4D_delay <= PcPlus4F;
+            PcD            <= PcD_delay;
+            PcPlus4D       <= PcPlus4D_delay;
+        end
     end
-        
-        
-    //////////////////////////////////////////////////
-    // Stall -> hold current values
-    //////////////////////////////////////////////////
-
 end
-
 endmodule
