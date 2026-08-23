@@ -6,26 +6,24 @@
 // Instantiate one of these per memory (instruction memory, data memory).
 
 module mem_port_mux #(
-    parameter int ADDR_WIDTH = 11,
-    parameter int DATA_WIDTH = 32
 )(
     input  logic                    load_mode,
 
     // loader side
-    input  logic [ADDR_WIDTH-1:0]   ldr_addr,
-    input  logic                    ldr_we,
-    input  logic [DATA_WIDTH-1:0]   ldr_wdata,
+    input  logic [11:0]   ldr_addr,
+    input  logic          ldr_we,
+    input  logic [31:0]   ldr_wdata,
 
     // core side (fetch-stage read port for instr mem)
-    input  logic [ADDR_WIDTH-1:0]   core_addr,
+    input  logic [31:0]   core_addr,
 
     // memory-facing signals -> wire these to the actual SRAM macro
-    output logic [ADDR_WIDTH-1:0]   mem_addr,
-    output logic                    mem_we,
-    output logic [DATA_WIDTH-1:0]   mem_wdata
+    output logic [ 9:0]   mem_addr, //Because mem is 1024 word wise locations so we have to drop 2 bits used for bytes
+    output logic          mem_we,
+    output logic [31:0]   mem_wdata
 );
 
-    assign mem_addr  = load_mode ? ldr_addr  : core_addr;
+    assign mem_addr  = load_mode ? ldr_addr[11:2] : core_addr[11:2];  
     assign mem_we    = load_mode ? ldr_we    : 1'b0;
     assign mem_wdata = ldr_wdata;
 

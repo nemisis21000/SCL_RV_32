@@ -1,6 +1,6 @@
 module hazard_unit(
 
-    input logic rst,
+    input logic rst_n,
 
     input logic RegWriteM,
     input logic RegWriteW,
@@ -41,7 +41,7 @@ module hazard_unit(
 //////////////////////////////////////////////////////
 
 assign ForwardAE =
-    (!rst) ? 2'b00 :
+    (!rst_n) ? 2'b00 :
 
     ((RegWriteM) && (RdM != 0) && (RdM == Rs1E)) ? 2'b10 :
 
@@ -50,7 +50,7 @@ assign ForwardAE =
     2'b00;
 
 assign ForwardBE =
-    (!rst) ? 2'b00 :
+    (!rst_n) ? 2'b00 :
 
     ((RegWriteM) && (RdM != 0) && (RdM == Rs2E)) ? 2'b10 :
 

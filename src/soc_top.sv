@@ -1,28 +1,25 @@
 module soc_top( 
     input  logic        clk,
-    input  logic        rst,
+    input  logic        rst_n,
     output logic [31:0] debug_out,
 //Byte Loading
-    input  logic        load_mode,    // 1 = boot-load mode, 0 = run mode both rst and load can cause the core to reset
+    input  logic        load_mode,    // 1 = boot-load mode, 0 = run mode both rst_n and load can cause the core to reset
     input  logic [7:0]  data_in,
     input  logic        byte_strobe  //Tells the loader when to sample the input byte
-//    output logic       load_ready // Tells whether the macro is ready or not
-// The macro is assumed to have single cycle write hence loadready will always be one
 ); 
 
 //Pipeline Instruction Bus
-logic [31:0] INSTR_ADD; 
-logic [31:0] INSTR;
-//logic [31:0] INSTR_EXT;
+logic [31:0] INSTR_ADDR; 
+logic [35:0] INSTR; //36 bits because of macro, first 4 bits dropped before injection into processor
 
 //Byte loader
 logic        core_rst_n;
-logic [11:0]  ldr_waddr;
+logic [11:0] ldr_waddr;
 logic [31:0] ldr_wdata;
 logic        ldr_we;
 
 //Imem Macro
-logic [11:0]  IMEM_ADD;
+logic [ 9:0] IMEM_ADDR;
 logic [31:0] IMEM_WDATA;
 logic        IMEM_WE;
 
@@ -38,11 +35,10 @@ logic [31:0] MEM_RDATA;
 
 byte_loader instr_in(
     .ext_clk     (clk),
-    .ext_rst_n   (rst),
+    .ext_rst_n   (rst_n),
     .load_mode   (load_mode),
     .data_in     (data_in),
     .byte_strobe (byte_strobe),
-//    .load_ready  (load_ready),
     
     .core_rst_n  (core_rst_n),
     .instr_waddr (ldr_waddr),
@@ -55,8 +51,8 @@ mem_port_mux instr_mux(
     .ldr_addr    (ldr_waddr),
     .ldr_we      (ldr_we),
     .ldr_wdata   (ldr_wdata),
-    .core_addr   (INSTR_ADD[10:0]),
-    .mem_addr    (IMEM_ADD),
+    .core_addr   (INSTR_ADDR[11:0]),
+    .mem_addr    (IMEM_ADDR),
     .mem_we      (IMEM_WE),
     .mem_wdata   (IMEM_WDATA)
 
@@ -65,7 +61,7 @@ mem_port_mux instr_mux(
 pipeline_top cpu (
 
     .clk(clk),
-    .rst(core_rst_n),
+    .rst_n(core_rst_n),
     .debug_out(debug_out),
      
      //AXI
@@ -78,17 +74,17 @@ pipeline_top cpu (
     .MEM_RDATA   (   MEM_RDATA),
     
     //Imem Macro
-    .INSTR_ADD(INSTR_ADD),
-    .INSTR(INSTR)
+    .INSTR_ADD(INSTR_ADDR),
+    .INSTR(INSTR[31:0])
 );
 
-    // ========================================
+// ========================================
 // AXI SUBSYSTEM
 // ========================================
 AXI_TOP axi_top (
 
     .clk            (clk),
-    .reset          (rst),
+    .rst_n          (rst_n),
 
     .mem_addr       (MEM_ADDR),
     .mem_wdata      (MEM_WDATA),
@@ -102,23 +98,23 @@ AXI_TOP axi_top (
 
 );
 
-Data_RAM Imem(
-    .clk        (clk),
-    .addr       (IMEM_ADD),
-    .write_data (IMEM_WDATA),
-    .wstrb      (4'b1111),
-    .read_en    (~IMEM_WE),
-    .write_en   (IMEM_WE),
-    .read_data  (INSTR)
-);
-
-//SPRAM_1024x36 Imem(
-//    .A          (IMEM_ADD[11:2]),
-//    .CE         (clk),
-//    .WEB        (~IMEM_WE),
-//    .OEB        (IMEM_WE),
-//    .CSB        (1'b1),
-//    .I          ({4'b0000,IMEM_WDATA}),
-//    .O          (INSTR_EXT)
+//Data_RAM Imem(
+//    .clk        (clk),
+//    .addr       (IMEM_ADD),
+//    .write_data (IMEM_WDATA),
+//    .wstrb      (4'b1111),
+//    .read_en    (~IMEM_WE),
+//    .write_en   (IMEM_WE),
+//    .read_data  (INSTR)
 //);
+
+SPRAM_1024x36 Imem( //All Signals active low
+    .A          (IMEM_ADDR),
+    .CE         (clk),
+    .WEB        (~IMEM_WE),
+    .OEB        (IMEM_WE),  
+    .CSB        (1'b0),
+    .I          ({4'b0000,IMEM_WDATA}), //4 padding bits + 32bits of Instruction
+    .O          (INSTR)
+);
 endmodule

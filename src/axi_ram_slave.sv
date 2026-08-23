@@ -172,34 +172,33 @@ module AXI_RAM_Slave #(
     // DATA RAM
     // =====================================================
 
-    Data_RAM data_ram (
+//    Data_RAM data_ram (
 
-        .clk        (clk),
-        .addr       (ram_addr[10:0] ),
-        .write_data (ram_wdata),
-        .wstrb      (4'b1111),
-        .read_en    (ram_re),
-        .write_en   (ram_we),
-        .read_data  (ram_rdata)
+//        .clk        (clk),
+//        .addr       (ram_addr[10:0] ),
+//        .write_data (ram_wdata),
+//        .wstrb      (4'b1111),
+//        .read_en    (ram_re),
+//        .write_en   (ram_we),
+//        .read_data  (ram_rdata)
 
+//    );
+
+
+    SPRAM_1024x36 Dmem(
+        .A          (ram_addr[11:2]),
+        .CE         (clk),
+        .WEB        (~ram_we),
+        .OEB        (~ram_re),
+        .CSB        (~(ram_re | ram_we)),
+        .I          ({4'b0000,ram_wdata}),
+        .O          (ram_rdata_ext)
     );
-
-
-    //SPRAM_1024x36 Imem(
-    //    .A          (ram_addr[11:2]),
-    //    .CE         (clk),
-    //    .WEB        (~ram_we),
-    //    .OEB        (ram_re),
-    //    .CSB        (ram_re | ram_we),
-    //    .I          ({4'b0000,ram_wdata}),
-    //    .O          (ram_rdata_ext)
-    //);
 
 logic [31:0] merged_data;
 
     always_comb begin
-        merged_data = ram_rdata;
-//        merged_data = ram_rdata_ext[31:0];
+        merged_data = ram_rdata_ext[31:0];
         if (wstrb_now[0])
             merged_data[7:0] = wdata_reg[7:0];
         if (wstrb_now[1])
@@ -356,8 +355,7 @@ logic [31:0] merged_data;
         ram_we    = 1'b0;
         ram_re    = 1'b0;
         
-        s_axi_rdata = rd_err ? 32'b0 : ram_rdata;
-    //  s_axi_rdata = rd_err ? 32'b0 : ram_rdata_ext[31:0];
+      s_axi_rdata = rd_err ? 32'b0 : ram_rdata_ext[31:0];
     // =============================================
     //FULL WRITE
     //==============================================

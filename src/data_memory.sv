@@ -2,7 +2,7 @@
 
 module jtsc_dmem(
     input  logic        clk,
-    input  logic        rst,
+    input  logic        rst_n,
     input  logic [31:0] A,
     input  logic [31:0] WD,
     input  logic        MemWrite,
@@ -38,9 +38,9 @@ assign StallMem = (MemRead || MemWrite) && !((MEM_WRITE || MEM_READ || req_pendi
 // SINGLE-CYCLE PULSE GENERATION FOR MEM_WRITE / MEM_READ
 ///////////////////////////////////////////////////
 
-always_ff @(posedge clk or negedge rst)
+always_ff @(posedge clk or negedge rst_n)
 begin
-    if(!rst)
+    if(!rst_n)
         req_pending <= 1'b0;
     else begin
         if((MemRead||MemWrite) && !req_pending && !MEM_READY)

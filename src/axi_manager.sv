@@ -18,7 +18,7 @@ module AXI_Manager #(
 )
 (
     input logic                      clk,
-    input logic                      reset,
+    input logic                      rst_n,
 
     // =============== CPU Interface ===============
     input logic [ADDR_WIDTH - 1:0]   mem_addr,
@@ -73,9 +73,9 @@ module AXI_Manager #(
     // =============== MAIN FSM ===============
     logic aw_done;        // Indicates that the AW channel handshake has completed
     logic w_done;         // Indicates that the W channel handshake has completed
-    always_ff @(posedge clk or negedge reset) begin
+    always_ff @(posedge clk or negedge rst_n) begin
         
-        if (!reset) begin
+        if (!rst_n) begin
             state       <= IDLE;
             
             axi_wdata   <= 0;

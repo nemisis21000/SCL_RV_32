@@ -30,8 +30,8 @@
 //
 // Reset convention
 // ----------------------------------------------------------------------------
-// reset = 0 : synchronous reset active
-// reset = 1 : normal operation
+// rst_n = 0 : synchronous reset active
+// rst_n = 1 : normal operation
 // ============================================================================
 
 module AXI_TOP #(
@@ -42,11 +42,11 @@ module AXI_TOP #(
 (
 
     input clk, 
-    input reset,
+    input rst_n,
 
     input [ADDR_WIDTH - 1:0]    mem_addr,
     input [DATA_WIDTH - 1:0]    mem_wdata,
-    input [DATA_WIDTH/8 - 1:0]  mem_wstrb,          // Byte enable from CPU
+    input [DATA_WIDTH/8 - 1:0]  mem_wstrb,
     input                       mem_we,
     input                       mem_re,
     output [DATA_WIDTH - 1:0]   mem_rdata,
@@ -112,16 +112,11 @@ module AXI_TOP #(
     // =========================================================================
     // AXI MANAGER
     // =========================================================================
-    //
-    // NOTE:
-    // Currently using a standalone AXI Manager to test the subsystem.
-    // Later, the CPU_BUS_TO_AXI interface will be connected here.
-    //
-    // =========================================================================
+
     AXI_Manager manager (
 
         .clk                (clk),
-        .reset              (reset),
+        .rst_n              (rst_n),
 
         .mem_addr           (mem_addr),
         .mem_wdata          (mem_wdata),
@@ -159,75 +154,15 @@ module AXI_TOP #(
         .axi_rready         (m_axi_rready)
     );
 
-//    // =========================================================================
-//    // AXI INTERCONNECT
-//    // + s0 = RAM
-//    // =========================================================================
-//    AXI_Interconnect u_interconnect (
-//        .clk                (clk),
-//        .reset              (reset),
-
-//        // ===============================
-//        // AXI MASTER SIDE
-//        // ===============================
-//        .m_axi_awaddr       (m_axi_awaddr),
-//        .m_axi_awvalid      (m_axi_awvalid),
-//        .m_axi_awready      (m_axi_awready),
-
-//        .m_axi_wdata        (m_axi_wdata),
-//        .m_axi_wstrb        (m_axi_wstrb),
-//        .m_axi_wvalid       (m_axi_wvalid),
-//        .m_axi_wready       (m_axi_wready),
-
-//        .m_axi_bresp        (m_axi_bresp),
-//        .m_axi_bvalid       (m_axi_bvalid),
-//        .m_axi_bready       (m_axi_bready),
-
-//        .m_axi_araddr       (m_axi_araddr),
-//        .m_axi_arvalid      (m_axi_arvalid),
-//        .m_axi_arready      (m_axi_arready),
-
-//        .m_axi_rdata        (m_axi_rdata),
-//        .m_axi_rresp        (m_axi_rresp),
-//        .m_axi_rvalid       (m_axi_rvalid),
-//        .m_axi_rready       (m_axi_rready),
-
-//        // ===============================
-//        // RAM SLAVE
-//        // ===============================
-//        .s0_axi_awaddr       (ram_axi_awaddr),
-//        .s0_axi_awvalid      (ram_axi_awvalid),
-//        .s0_axi_awready      (ram_axi_awready),
-
-//        .s0_axi_wdata        (ram_axi_wdata),
-//        .s0_axi_wstrb        (ram_axi_wstrb),
-//        .s0_axi_wvalid       (ram_axi_wvalid),
-//        .s0_axi_wready       (ram_axi_wready),
-
-//        .s0_axi_bresp        (ram_axi_bresp),
-//        .s0_axi_bvalid       (ram_axi_bvalid),
-//        .s0_axi_bready       (ram_axi_bready),
-
-//        .s0_axi_araddr       (ram_axi_araddr),
-//        .s0_axi_arvalid      (ram_axi_arvalid),
-//        .s0_axi_arready      (ram_axi_arready),
-
-//        .s0_axi_rdata        (ram_axi_rdata),
-//        .s0_axi_rresp        (ram_axi_rresp),
-//        .s0_axi_rvalid       (ram_axi_rvalid),
-//        .s0_axi_rready       (ram_axi_rready)
-//    );
-
     // =========================================================================
     // AXI RAM SLAVE
     // =========================================================================
     AXI_RAM_Slave ram_slave (
 
         .clk                 (clk),
-        .reset                (reset),
+        .rst_n               (rst_n),
 
         .s_axi_awaddr       (m_axi_awaddr),
-//        .s_axil_awprot       (3'b000),
         .s_axi_awvalid      (m_axi_awvalid),
         .s_axi_awready      (m_axi_awready),
 
@@ -241,7 +176,6 @@ module AXI_TOP #(
         .s_axi_bready       (m_axi_bready),
 
         .s_axi_araddr       (m_axi_araddr),
-//        .s_axil_arprot       (3'b000),
         .s_axi_arvalid      (m_axi_arvalid),
         .s_axi_arready      (m_axi_arready),
 
@@ -249,5 +183,5 @@ module AXI_TOP #(
         .s_axi_rresp        (m_axi_rresp),
         .s_axi_rvalid       (m_axi_rvalid),
         .s_axi_rready       (m_axi_rready)
-    );
+    ); 
 endmodule
