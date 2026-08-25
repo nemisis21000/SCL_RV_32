@@ -51,7 +51,7 @@ mem_port_mux instr_mux(
     .ldr_addr    (ldr_waddr),
     .ldr_we      (ldr_we),
     .ldr_wdata   (ldr_wdata),
-    .core_addr   (INSTR_ADDR[11:0]),
+    .core_addr   (INSTR_ADDR),
     .mem_addr    (IMEM_ADDR),
     .mem_we      (IMEM_WE),
     .mem_wdata   (IMEM_WDATA)

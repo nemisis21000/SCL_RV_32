@@ -76,7 +76,8 @@ Pc_Module Pc(
 //////////////////////////////////////////////////////
 
 inst_memory inst_mem(
-
+    .clk(clk),
+    .rst_n(rst_n),
     .A(PCF),
     .INSTR_ADD(INSTR_ADD),
     .INSTR(INSTR),
@@ -94,22 +95,36 @@ Pc_adder pc_adder(
     .PcF_4(PcPlus4F)
 
 );
-
 //STALLM check
 logic StallF_reg;
 logic [31:0] sINSTR;
-
-//////////////////////////////////////////////////////
-// Combined IF/ID Pipeline Register + Stall-replay logic
-//////////////////////////////////////////////////////
-
 always_ff @(posedge clk or negedge rst_n)
 begin
     if(!rst_n)
     begin
-        PcSrcE_delay   <= 1'b0;
-        StallF_reg     <= 1'b0;
-        sINSTR         <= 32'h00000013;
+        PcSrcE_delay <= 1'b0;
+        StallF_reg   <= 1'b0;
+        sINSTR       <= 32'h13;     //nop
+    end
+    else begin
+        PcSrcE_delay <= PcSrcE;
+        StallF_reg   <= StallF;
+        
+        if(StallF && (~StallF_reg))
+                sINSTR <= InstrF;   
+    end
+    
+    
+end
+//////////////////////////////////////////////////////
+// IF/ID Pipeline Register
+//////////////////////////////////////////////////////
+
+always_ff @(posedge clk or negedge rst_n)
+begin
+
+    if(!rst_n)
+    begin
 
         InstrD         <= 32'h00000013; // NOP
         PcD            <= 32'd0;
@@ -117,48 +132,61 @@ begin
         PcD_delay      <= 32'd0;
         PcPlus4D_delay <= 32'd0;
     end
+
+    //////////////////////////////////////////////////
+    // Flush on branch/jump OR interrupt
+    //////////////////////////////////////////////////
+
+else if(FlushIF)
+
+    begin
+
+        InstrD         <= 32'h00000013; // bubble
+        PcD            <= 32'd0;
+        PcPlus4D       <= 32'd4;
+        PcD_delay      <= 32'd0;
+        PcPlus4D_delay <= 32'd0;    
+    end
+
+    //////////////////////////////////////////////////
+    // Stall -> hold current values
+    //////////////////////////////////////////////////
+
+    else if(StallF)
+    begin
+
+        InstrD         <= InstrD;
+        PcD_delay      <= PcD_delay;
+        PcPlus4D_delay <= PcPlus4D_delay;
+        PcD            <= PcD;
+        PcPlus4D       <= PcPlus4D;
+    end
+    
+    //////////////////////////////////////////////////
+    // Normal update
+    ////////////////////////////////////////////////// 
+    
+    else if ((~StallF) && StallF_reg)
+    begin
+        InstrD <= sINSTR;
+        PcD_delay      <= PCF;
+        PcPlus4D_delay <= PcPlus4F;
+        PcD            <= PcD_delay;
+        PcPlus4D       <= PcPlus4D_delay;
+    end
     else
     begin
-        // -------- delay/tracking signals (always update) --------
-        PcSrcE_delay <= PcSrcE;
-        StallF_reg   <= FlushIF ? 1'b0 : StallF;
-
-        if(StallF && (~StallF_reg))
-            sINSTR <= InstrF;
-
-        // -------- IF/ID pipeline register --------
-        if(FlushIF)
-        begin
-            InstrD         <= 32'h00000013; // bubble
-            PcD            <= 32'd0;
-            PcPlus4D       <= 32'd4;
-            PcD_delay      <= 32'd0;
-            PcPlus4D_delay <= 32'd0;
-        end
-        else if(StallF)
-        begin
-            InstrD         <= InstrD;
-            PcD_delay      <= PcD_delay;
-            PcPlus4D_delay <= PcPlus4D_delay;
-            PcD            <= PcD;
-            PcPlus4D       <= PcPlus4D;
-        end
-        else if ((~StallF) && StallF_reg)
-        begin
-            InstrD         <= sINSTR;
-            PcD_delay      <= PCF;
-            PcPlus4D_delay <= PcPlus4F;
-            PcD            <= PcD_delay;
-            PcPlus4D       <= PcPlus4D_delay;
-        end
-        else
-        begin
-            InstrD         <= InstrF;
-            PcD_delay      <= PCF;
-            PcPlus4D_delay <= PcPlus4F;
-            PcD            <= PcD_delay;
-            PcPlus4D       <= PcPlus4D_delay;
-        end
+        InstrD         <= InstrF;
+        PcD_delay      <= PCF;
+        PcPlus4D_delay <= PcPlus4F;
+        PcD            <= PcD_delay;
+        PcPlus4D       <= PcPlus4D_delay;
     end
+        
+        
+    //////////////////////////////////////////////////
+    // Stall -> hold current values
+    //////////////////////////////////////////////////
+
 end
 endmodule
