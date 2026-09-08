@@ -1,3 +1,4 @@
+`timescale 1ns / 1ps
 // ======================================================
 // AXI Manager Module
 // + AXI Manager
@@ -64,10 +65,6 @@ module AXI_Manager #(
     localparam [2:0] READ_ADDR    = 3'b011;
     localparam [2:0] READ_DATA    = 3'b100;
     
-    ///NOT USING THESE///
-    localparam [2:0] POST_WRITE   = 3'b101;     // 1-cycle cooldown after a WRITE to prevent re-triggering before the CPU deasserts mem_we
-    localparam [2:0] POST_READ    = 3'b110;     // 1-cycle cooldown after a READ to prevent re-triggering before the CPU deasserts mem_re
-
     logic [2:0] state;
 
     // =============== MAIN FSM ===============
@@ -189,22 +186,6 @@ module AXI_Manager #(
 
                         state       <= IDLE;
                     end
-                end
-                
-                
-               //  =============== POST WRITE (1-cycle cooldown) ===============
-                // Prevents duplicate write transactions while mem_we is still HIGH
-               // because the CPU pipeline has not yet updated the EX/MEM stage.
-                POST_WRITE: begin
-                    state <= IDLE;
-                end
-
-                // =============== POST READ (1-cycle cooldown) ===============
-                // Prevents duplicate read transactions
-                // (especially important for UART RX FIFOs, where a second read
-                // would unintentionally pop another entry).
-                POST_READ: begin
-                    state <= IDLE;
                 end
                 default: state <= IDLE;
             endcase

@@ -1,0 +1,27 @@
+1st iteration
+================================================
+ AXI_TOP END-TO-END VERIFICATION
+================================================
+
+Basic full-word read/write end-to-end...
+Partial write (RMW) via wstrb, end-to-end...
+AW/W internal handshake coverage...
+Back-to-back transactions, end-to-end...
+Invalid address handling, end-to-end...
+Reset asserted mid-transaction...
+
+Running 2000 randomized end-to-end transactions...
+
+Running full-memory backdoor diff against reference model...
+
+================================================
+ AXI_TOP VERIFICATION REPORT
+================================================
+Total Tests         = 3060
+Passed              = 3060
+Failed              = 0
+Assertion Failures  = 0
+Functional Coverage = 100.00%
+================================================
+
+******** AXI_TOP VERIFICATION PASSED ********

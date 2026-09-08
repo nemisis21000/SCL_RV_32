@@ -1,0 +1,35 @@
+1st Iteration
+
+Many bugs 
+FIX >> in WR_RMW changed awaddr_reg to awaddr_now
+Bugs gone
+
+2nd iteration
+================================================
+ AXI_RAM_Slave VERIFICATION
+================================================
+
+Basic full-word read/write...
+Partial write (RMW) via wstrb...
+Same-cycle vs split-cycle AW/W...
+Back-to-back transactions...
+relaunch_sim: Time (s): cpu = 00:00:01 ; elapsed = 00:00:05 . Memory (MB): peak = 3460.688 ; gain = 0.000
+run 4 us
+Invalid address -> SLVERR...
+
+Running 2000 randomized read/write transactions...
+run 4 us
+run 4 us
+run 80 us
+
+================================================
+ AXI_RAM_Slave VERIFICATION REPORT
+================================================
+Total Tests         = 2036
+Passed              = 2036
+Failed              = 0
+Assertion Failures  = 0
+Functional Coverage = 100.00%
+================================================
+
+******** AXI_RAM_Slave VERIFICATION PASSED ********

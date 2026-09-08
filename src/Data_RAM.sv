@@ -1,3 +1,4 @@
+`timescale 1ns / 1ps
 module SPRAM_1024x36 (
     input  logic         CE,     // clock (rising edge)
     input  logic         CSB,    // active-low chip select
