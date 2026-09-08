@@ -1,3 +1,4 @@
+`timescale 1ns / 1ps
 // ============================================================================
 // Module AXI_RAM_Slave
 // ----------------------------------------------------------------------------
@@ -17,8 +18,7 @@
 // 00x0000_0000 ~ 0x0000_0FFF
 //
 // ============================================================================
-//There is a possiblity that in the slave implemented there may arise timing complications because 
-//it is just one long combinational path
+
 module AXI_RAM_Slave #(
 
     parameter ADDR_WIDTH = 32,
@@ -366,15 +366,17 @@ logic [31:0] merged_data;
                     
             ram_we = 1'b1;
         end
-        
+     // =============================================
+     //PARTIAL WRITE
+     //==============================================   
         else if (wr_state == WR_IDLE && aw_viable && w_viable &&
                  addr_valid(awaddr_now) && !(&wstrb_now)) begin
-            ram_addr = awaddr_reg;
+            ram_addr = awaddr_now;
             ram_re   = 1'b1;
         end            
         
         else if (wr_state == WR_RMW) begin
-            ram_addr  = awaddr_reg;
+            ram_addr  = awaddr_now;
             ram_wdata = merged_data;
             ram_we    = 1'b1;
         end
