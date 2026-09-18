@@ -96,12 +96,26 @@ logic [31:0] SrcBE;
 logic [31:0] ForwardAData;
 logic [31:0] ForwardBData;
 
-
+logic [31:0] Forward_mstage;
 logic [31:0] ALUOut;
 logic zeroE;
 logic less_thanE;
 
 logic BranchTaken;
+
+
+//////////////////////////////////////////////////////
+//MUX between ALUResultM forward and PCplus4
+//////////////////////////////////////////////////////
+
+always_comb
+begin
+    case(ResultSrcM)
+    2'b00: Forward_mstage = ALUResultM_forward;
+    2'b01: Forward_mstage = PcPlus4M;
+    default: Forward_mstage = ALUResultM_forward;
+    endcase
+end
 
 //////////////////////////////////////////////////////
 // Forwarding MUX A
@@ -111,7 +125,7 @@ mux_3_1 mux_hazard_1 (
 
     .a(RD1E),
     .b(ResultW),
-    .c(ALUResultM_forward),
+    .c(Forward_mstage),
     .s(ForwardAE),
 
     .muxout(ForwardAData)
